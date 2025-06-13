@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->float('reward_points')->default(0);
             $table->foreignId('customer_type_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

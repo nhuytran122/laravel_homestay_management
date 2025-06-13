@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
 {
+    protected $fillable = ['user_id', 'customer_type_id'];
     public function customer_type(){
         return $this->belongsTo(CustomerType::class);
     }

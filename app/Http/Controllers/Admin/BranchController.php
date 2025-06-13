@@ -1,65 +1,85 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\BranchRequest;
 use App\Models\Branch;
+use App\Services\BranchService;
 use Illuminate\Http\Request;
 
 class BranchController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    private $branchService;
+
+    public function __construct(BranchService $branchService){   
+        $this->branchService = $branchService;
+    }
+    
+    public function index(Request $request)
     {
-        //
+        $keyword = $request->input('keyword');
+
+        $data = $keyword
+            ? $this->branchService->search($keyword)
+            : $this->branchService->getAll();
+
+        return response()->json([
+            'data' => $data,
+            'message' => $keyword && $data->isEmpty()
+                ? 'Không tìm thấy chi nhánh nào phù hợp.'
+                : null
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(BranchRequest $request)
+    {
+        $branch = $this->branchService->create($request->validated());
+        if ($request->hasFile('image')) {
+            $branch->addMediaFromRequest('image')->toMediaCollection('images');
+        }
+        return response()->json([
+            'data' => $branch,
+            'message' => 'Tạo mới chi nhánh thành công'
+        ], 201);
+    }
+
+    public function show($id)
+    {
+        $branch = $this->branchService->getById($id);
+        return response()->json([
+            'data' => $branch
+        ], 200);
+    }
+
+    public function edit(Branch $customerType)
     {
         //
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Branch $branch)
+    public function update(BranchRequest $request, string $id)
     {
-        //
+        $branch = $this->branchService->update($id, $request->validated());
+        if ($request->hasFile('image')) {
+            $branch->clearMediaCollection('images');
+            $branch->addMediaFromRequest('image')->toMediaCollection('images');
+        }
+        return response()->json([
+            'data' => $branch,
+            'message' => 'Cập nhật chi nhánh thành công'
+        ]);
+    }
+    
+    public function destroy($id)
+    {
+        $this->branchService->delete($id);
+        return response()->json([
+            'message' => 'Xóa chi nhánh thành công'
+        ], 200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Branch $branch)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Branch $branch)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Branch $branch)
-    {
-        //
-    }
 }

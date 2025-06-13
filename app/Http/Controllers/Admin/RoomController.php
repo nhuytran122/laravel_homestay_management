@@ -1,65 +1,85 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\RoomRequest;
 use App\Models\Room;
+use App\Services\RoomService;
 use Illuminate\Http\Request;
 
 class RoomController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    private $roomService;
+
+    public function __construct(RoomService $roomService){   
+        $this->roomService = $roomService;
+    }
+    
+    public function index(Request $request)
     {
-        //
+        $room_type_id = $request->input('room_type_id');
+        $branch_id = $request->input('branch_id');
+
+        $data = $this->roomService->search($room_type_id, $branch_id);
+
+        return response()->json([
+            'data' => $data,
+            'message' => $data->isEmpty()
+                ? 'Không tìm thấy phòng nào phù hợp.'
+                : null
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+
     public function create()
     {
-        //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(RoomRequest $request)
     {
-        //
+        $room = $this->roomService->create($request->validated());
+        if ($request->hasFile('image')) {
+            $room->addMediaFromRequest('image')->toMediaCollection('images');
+        }
+        return response()->json([
+            'data' => $room,
+            'message' => 'Tạo mới phòng thành công'
+        ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Room $room)
+    public function show($id)
     {
-        //
+        $room = $this->roomService->getById($id);
+        return response()->json([
+            'data' => $room
+        ], 200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Room $room)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Room $room)
+    public function update(RoomRequest $request, string $id)
     {
-        //
+        $room = $this->roomService->update($id, $request->validated());
+        if ($request->hasFile('image')) {
+            $room->clearMediaCollection('images');
+            $room->addMediaFromRequest('image')->toMediaCollection('images');
+        }
+        return response()->json([
+            'data' => $room,
+            'message' => 'Cập nhật phòng thành công'
+        ]);
+    }
+    
+    public function destroy($id)
+    {
+        $this->roomService->delete($id);
+        return response()->json([
+            'message' => 'Xóa phòng thành công'
+        ], 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Room $room)
-    {
-        //
-    }
 }

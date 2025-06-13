@@ -32,8 +32,6 @@ use App\Models\CustomerType;
         public function update($id, $data)
         {
             $customer_type = $this->findById($id);
-            if (!$customer_type) return null;
-
             $customer_type->update($data);
             return $customer_type;
         }
@@ -41,8 +39,6 @@ use App\Models\CustomerType;
         public function delete($id)
         {
             $customer_type = $this->findById($id);
-            if (!$customer_type) return false;
-
             return $customer_type->delete();
         }
 

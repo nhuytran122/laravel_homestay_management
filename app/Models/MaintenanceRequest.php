@@ -4,9 +4,13 @@ namespace App\Models;
 
 use App\Enums\MaintenanceStatus;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class MaintenanceRequest extends Model
+class MaintenanceRequest extends Model implements HasMedia
 {
+    use InteractsWithMedia;
+
     protected $fillable = ['description', 'status', 'employee_id', 'branch_id', 'room_id'];
 
     protected $casts = [

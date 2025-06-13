@@ -20,5 +20,8 @@ class BookingService extends Model
         return $this->hasOne(PaymentDetail::class);
     }
 
+    public function service(){
+        return $this->belongsTo(Service::class);
+    }
 
 }

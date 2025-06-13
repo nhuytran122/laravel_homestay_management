@@ -1,7 +1,6 @@
 <?php
 namespace App\Repositories\User;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 
     class EloquentUserRepository implements UserRepositoryInterface{
         public function create($data){
@@ -11,8 +10,6 @@ use Illuminate\Support\Facades\Hash;
         public function update($id, $data)
         {
             $user = $this->findById($id);
-            if (!$user) return null;
-
             $user->update($data);
             return $user;
         }
@@ -20,8 +17,6 @@ use Illuminate\Support\Facades\Hash;
         public function delete($id)
         {
             $user = $this->findById($id);
-            if (!$user) return false;
-
             return $user->delete();
         }
 

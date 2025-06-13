@@ -1,65 +1,87 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
-use App\Models\RoomTyoe;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\RoomTypeRequest;
+use App\Models\RoomType;
+use App\Services\RoomTypeService;
 use Illuminate\Http\Request;
 
-class RoomTyoeController extends Controller
+class RoomTypeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    private $roomTypeService;
+
+    public function __construct(RoomTypeService $roomTypeService){   
+        $this->roomTypeService = $roomTypeService;
+    }
+    
+    public function index(Request $request)
     {
-        //
+        $keyword = $request->input('keyword');
+
+        $data = $keyword
+            ? $this->roomTypeService->search($keyword)
+            : $this->roomTypeService->getAll();
+
+        return response()->json([
+            'data' => $data,
+            'message' => $keyword && $data->isEmpty()
+                ? 'Không tìm thấy loại phòng nào phù hợp.'
+                : null
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(RoomTypeRequest $request)
+    {
+        $room_type = $this->roomTypeService->create($request->validated());
+
+        if ($request->hasFile('image')) {
+            $room_type->addMediaFromRequest('image')->toMediaCollection('images');
+        }
+
+        return response()->json([
+            'data' => $room_type,
+            'message' => 'Tạo mới phòng thành công'
+        ], 201);
+    }
+
+    public function show($id)
+    {
+        $room_type = $this->roomTypeService->getById($id);
+        return response()->json([
+            'data' => $room_type
+        ], 200);
+    }
+
+    public function edit(RoomType $room_type)
     {
         //
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(RoomTyoe $roomTyoe)
+    public function update(RoomTypeRequest $request, string $id)
     {
-        //
+        $room_type = $this->roomTypeService->update($id, $request->validated());
+        if ($request->hasFile('image')) {
+            $room_type->clearMediaCollection('images');
+            $room_type->addMediaFromRequest('image')->toMediaCollection('images');
+        }
+        return response()->json([
+            'data' => $room_type,
+            'message' => 'Cập nhật loại phòng thành công'
+        ]);
+    }
+    
+    public function destroy($id)
+    {
+        $this->roomTypeService->delete($id);
+        return response()->json([
+            'message' => 'Xóa loại phòng thành công'
+        ], 200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(RoomTyoe $roomTyoe)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, RoomTyoe $roomTyoe)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(RoomTyoe $roomTyoe)
-    {
-        //
-    }
 }

@@ -33,25 +33,15 @@ class CustomerTypeService
 
     public function update($id, array $data)
     {
-        $customerType = $this->repo->update($id, $data);
-
-        if (!$customerType) {
-            throw new ModelNotFoundException("Không thể cập nhật: không tìm thấy phân loại khách hàng với ID $id.");
-        }
-
-        return $customerType;
+        $this->getById($id);
+        return $this->repo->update($id, $data);
     }
 
     public function delete($id)
     {
-        $customerType = $this->repo->findById($id);
+        $customer_type = $this->getById($id);
 
-        if (!$customerType) {
-            throw new ModelNotFoundException("Không thể xóa: không tìm thấy phân loại khách hàng với ID $id.");
-        }
-
-        $has_customer = $customerType->customer()->exists();
-        if ($has_customer) {
+        if ($customer_type->customers()->exists()) {
             throw ValidationException::withMessages([
                 'customer_type_id' => "Không thể xóa vì hiện có khách hàng thuộc phân loại này."
             ]);
@@ -66,11 +56,11 @@ class CustomerTypeService
 
     public function getById($id)
     {
-        $customerType = $this->repo->findById($id);
+        $customer_type = $this->repo->findById($id);
 
-        if (!$customerType) {
+        if (!$customer_type) {
             throw new ModelNotFoundException('Không tìm thấy phân loại khách hàng với ID: ' . $id);
         }
-        return $customerType;
+        return $customer_type;
     }
 }

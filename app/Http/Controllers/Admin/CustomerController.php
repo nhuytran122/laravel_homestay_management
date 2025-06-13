@@ -1,65 +1,80 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\CustomerRequest;
 use App\Models\Customer;
+use App\Services\CustomerService;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    private $customerService;
+
+    public function __construct(CustomerService $customerService){   
+        $this->customerService = $customerService;
+    }
+    
+    public function index(Request $request)
     {
-        //
+        $keyword = $request->input('keyword');
+
+        $data = $keyword
+            ? $this->customerService->search($keyword)
+            : $this->customerService->getAll();
+
+        return response()->json([
+            'data' => $data,
+            'message' => $keyword && $data->isEmpty()
+                ? 'Không tìm thấy khách hàng nào phù hợp.'
+                : null
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+
     public function create()
     {
-        //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(CustomerRequest $request)
+    {
+        $validated = $request->validated(); 
+        $customer = $this->customerService->create($validated);
+        return response()->json([
+            'data' => $customer,
+            'message' => 'Tạo mới khách hàng thành công'
+        ], 201);
+    }
+
+    public function show($id)
+    {
+        $customer = $this->customerService->getById($id);
+        return response()->json([
+            'data' => $customer
+        ], 200);
+    }
+
+    public function edit(Customer $customerType)
     {
         //
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Customer $customer)
+    public function update(CustomerRequest $request, string $id)
     {
-        //
+        $customer = $this->customerService->update($id, $request->validated());
+        return response()->json([
+            'data' => $customer,
+            'message' => 'Cập nhật khách hàng thành công'
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Customer $customer)
+    public function destroy($id)
     {
-        //
+        $this->customerService->delete($id);
+        return response()->json([
+            'message' => 'Xóa khách hàng thành công'
+        ], 200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Customer $customer)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Customer $customer)
-    {
-        //
-    }
 }

@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CustomerService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-use App\Services\UserService;
 
 class AuthController extends Controller
 {
-    private $userService;
-    public function __construct(UserService $userService){
-        $this->userService = $userService;
+    private $customerService;
+    public function __construct(CustomerService $customerService){
+        $this->customerService = $customerService;
     }
     public function register(Request $request){
         $request->validate([
@@ -18,8 +18,8 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
         ]);
-        $user = $this->userService->create($request->all());
-
+        $customer = $this->customerService->create($request->all());
+        $user = $customer->user;
         $token = Auth::login($user);
         return response()->json([
             'status' => 'success',

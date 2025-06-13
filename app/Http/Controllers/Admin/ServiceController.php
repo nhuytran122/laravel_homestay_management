@@ -1,65 +1,78 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\ServiceRequest;
 use App\Models\Service;
+use App\Services\ExtraServiceService;
 use Illuminate\Http\Request;
 
 class ServiceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    private $serviceService;
+
+    public function __construct(ExtraServiceService $serviceService){   
+        $this->serviceService = $serviceService;
+    }
+    
+    public function index(Request $request)
     {
-        //
+        $keyword = $request->input('keyword');
+
+        $data = $keyword
+            ? $this->serviceService->search($keyword)
+            : $this->serviceService->getAll();
+
+        return response()->json([
+            'data' => $data,
+            'message' => $keyword && $data->isEmpty()
+                ? 'Không tìm thấy dịch vụ nào phù hợp.'
+                : null
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(ServiceRequest $request)
     {
-        //
+        $service = $this->serviceService->create($request->validated());
+        return response()->json([
+            'data' => $service,
+            'message' => 'Tạo mới dịch vụ thành công'
+        ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Service $service)
+    public function show($id)
     {
-        //
+        $service = $this->serviceService->getById($id);
+        return response()->json([
+            'data' => $service
+        ], 200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Service $service)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Service $service)
+    public function update(ServiceRequest $request, string $id)
     {
-        //
+        $service = $this->serviceService->update($id, $request->validated());
+        return response()->json([
+            'data' => $service,
+            'message' => 'Cập nhật dịch vụ thành công'
+        ]);
+    }
+    
+    public function destroy($id)
+    {
+        $this->serviceService->delete($id);
+        return response()->json([
+            'message' => 'Xóa dịch vụ thành công'
+        ], 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Service $service)
-    {
-        //
-    }
 }
