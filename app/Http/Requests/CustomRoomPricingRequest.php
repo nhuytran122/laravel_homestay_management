@@ -41,7 +41,7 @@ class CustomRoomPricingRequest extends BaseRoomPricingRequest
                 }
 
                 if ($start && $end) {
-                    $isOverlap = app(RoomPricingService::class)->isOverlapping($start, $end, $roomTypeId, $id);
+                    $isOverlap = app(RoomPricingService::class)->isOverlappingTime($start, $end, $roomTypeId, $id);
                     if ($isOverlap) {
                         $v->errors()->add('start_date', 'Thời gian áp dụng bị trùng lặp');
                         $v->errors()->add('end_date', 'Thời gian áp dụng bị trùng lặp');

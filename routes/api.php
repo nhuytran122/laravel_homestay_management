@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\RoomPricingController;
 use App\Http\Controllers\Admin\RoomTypeController;
 use App\Http\Controllers\Admin\ServiceController;
+use App\Http\Controllers\Client\BookingController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -17,6 +18,19 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware(['auth:api'])->group(function(){
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/profile', [AuthController::class, 'profile']);
+
+    Route::post('/booking/confirm-service/{booking_id}', [BookingController::class, 'postConfirmBookingService'])
+        ->name('booking.confirmService');
+
+    Route::get('/booking/booking-confirmation/{booking_id}', [BookingController::class, 'getBookingConfirmationPage'])
+        ->name('booking.getBookingConfirmationPage');
+
+    Route::get('/booking/booking-service/{booking_id}', [BookingController::class, 'selectService'])
+        ->name('booking.selectService');
+
+    Route::post('/booking', [BookingController::class, 'handleBooking'])
+        ->name('booking.handleBooking');
+    
 });
 
 Route::prefix('admin')->group(function () {

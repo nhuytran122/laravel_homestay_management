@@ -5,7 +5,7 @@ use App\Models\Room;
     class EloquentRoomRepository implements RoomRepositoryInterface{
         public function findById($id)
         {
-            return Room::find($id); 
+            return Room::with('room_type')->find($id);
         }
 
         public function search(?string $roomTypeId = null, ?string $branchId = null)

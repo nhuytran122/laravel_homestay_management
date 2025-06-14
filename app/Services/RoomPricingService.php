@@ -74,7 +74,11 @@ class RoomPricingService
         return $defaultPricing;
     }
 
-    public function isOverlapping($roomTypeId, $startDate, $endDate, $currentId = null){
+    public function getApplicablePricingForRange($roomTypeId, $checkIn, $checkOut){
+        return $this->repo->findApplicablePricingForRange($roomTypeId, $checkIn, $checkOut);
+    }
+
+    public function isOverlappingTime($roomTypeId, $startDate, $endDate, $currentId = null){
         return $this->repo->isOverlapping($roomTypeId, $startDate, $endDate, $currentId);
     }
 }

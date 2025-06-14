@@ -10,6 +10,7 @@ class Role extends Model
         'role_name',
         'description'
     ];
+    public $timestamps = false;
 
     public function users(){
         return $this->hasMany(User::class);

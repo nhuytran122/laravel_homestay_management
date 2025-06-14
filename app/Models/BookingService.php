@@ -24,4 +24,9 @@ class BookingService extends Model
         return $this->belongsTo(Service::class);
     }
 
+    public function getRawTotalAmount(): float
+    {
+        return ($this->service?->price ?? 0) * ($this->quantity ?? 0);
+    }
+
 }

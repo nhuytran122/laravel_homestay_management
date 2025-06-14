@@ -37,4 +37,9 @@ use App\Models\Service;
             return $service->delete();
         }
 
+        public function findByIsPrepaid(bool $isPrepaid)
+        {
+            return Service::where('is_prepaid', $isPrepaid)->get();
+        }
+
     }

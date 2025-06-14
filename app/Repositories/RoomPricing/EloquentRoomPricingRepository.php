@@ -65,4 +65,19 @@ use App\Repositories\RoomPricing\RoomPricingRepositoryInterface;
             return $query->update(['is_default' => false]);
         }
 
+        public function findApplicablePricingForRange($roomTypeId, $checkIn, $checkOut)
+        {
+            return RoomPricing::where('room_type_id', $roomTypeId)
+                ->where('start_date', '<=', $checkIn)
+                ->where('end_date', '>=', $checkOut)
+                ->first();
+        }
+
+        public function findDefaultPricingByRoomTypeId($roomTypeId)
+        {
+            return RoomPricing::where('room_type_id', $roomTypeId)
+                ->where('is_default', true)
+                ->first();
+        }
+
     }

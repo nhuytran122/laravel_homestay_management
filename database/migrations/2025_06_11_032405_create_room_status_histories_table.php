@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('room_status_histories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('room_id')->constrained()->onDelete('cascade');
-            $table->enum('status', ['BUSY', 'CLEANING'])->default('BUSY');
+            $table->enum('status', ['BUSY', 'CLEANING', 'MAINTENANCE'])->default('BUSY');
             $table->dateTime('started_at');
             $table->dateTime('ended_at');
             $table->foreignId('booking_id')->constrained()->onDelete('cascade');
+            $table->timestamps();
         });
     }
 

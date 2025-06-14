@@ -59,6 +59,10 @@ class ExtraServiceService
         return $service;
     }
 
+    public function getListServicesByIsPrepaid(bool $isPrepaid)
+    {
+        return $this->repo->findByIsPrepaid($isPrepaid);
+    }
     private function canDelete($service){
         return !($service->booking_services()->exists());
     }
