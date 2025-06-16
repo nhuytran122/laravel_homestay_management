@@ -8,11 +8,12 @@ class DiscountHelper
 {
     public static function calculateDiscountAmount(float $originalPrice, Customer $customer): float
     {
-        if (!$customer || !$customer->customerType) {
+        $customer_type = $customer->customer_type;
+        if (!$customer || !$customer_type) {
             return 0.0;
         }
 
-        $discountRate = $customer->customerType->discount_rate;
+        $discountRate = $customer_type->discount_rate;
         return ($discountRate > 0) ? $originalPrice * $discountRate / 100 : 0.0;
     }
 }

@@ -38,10 +38,8 @@ class RoomController extends Controller
 
     public function store(RoomRequest $request)
     {
-        $room = $this->roomService->create($request->validated());
-        if ($request->hasFile('image')) {
-            $room->addMediaFromRequest('image')->toMediaCollection('images');
-        }
+        $room = $this->roomService->create($request->validated(),
+                                            $request->file('image'));
         return response()->json([
             'data' => $room,
             'message' => 'Tạo mới phòng thành công'
@@ -63,11 +61,8 @@ class RoomController extends Controller
 
     public function update(RoomRequest $request, string $id)
     {
-        $room = $this->roomService->update($id, $request->validated());
-        if ($request->hasFile('image')) {
-            $room->clearMediaCollection('images');
-            $room->addMediaFromRequest('image')->toMediaCollection('images');
-        }
+        $room = $this->roomService->update($id, $request->validated(),
+                                            $request->file('image'));
         return response()->json([
             'data' => $room,
             'message' => 'Cập nhật phòng thành công'

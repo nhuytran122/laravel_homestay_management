@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Repositories\Booking\BookingRepositoryInterface;
 use App\Repositories\Booking\EloquentBookingRepository;
+use App\Repositories\BookingExtension\BookingExtensionRepositoryInterface;
+use App\Repositories\BookingExtension\EloquentBookingExtensionRepository;
 use App\Repositories\BookingPricingSnapshot\BookingPricingSnapshotRepositoryInterface;
 use App\Repositories\BookingPricingSnapshot\EloquentBookingPricingSnapshotRepository;
 use App\Repositories\BookingService\BookingServiceRepositoryInterface;
@@ -16,6 +18,10 @@ use App\Repositories\CustomerType\CustomerTypeRepositoryInterface;
 use App\Repositories\CustomerType\EloquentCustomerTypeRepository;
 use App\Repositories\Employee\EloquentEmployeeRepository;
 use App\Repositories\Employee\EmployeeRepositoryInterface;
+use App\Repositories\Payment\EloquentPaymentRepository;
+use App\Repositories\Payment\PaymentRepositoryInterface;
+use App\Repositories\PaymentDetail\EloquentPaymentDetailRepository;
+use App\Repositories\PaymentDetail\PaymentDetailRepositoryInterface;
 use App\Repositories\Role\EloquentRoleRepository;
 use App\Repositories\Role\RoleRepositoryInterface;
 use App\Repositories\Room\EloquentRoomRepository;
@@ -50,9 +56,12 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(ServiceRepositoryInterface::class, EloquentServiceRepository::class);
         $this->app->bind(RoomPricingRepositoryInterface::class, EloquentRoomPricingRepository::class);
         $this->app->bind(BookingRepositoryInterface::class, EloquentBookingRepository::class);   
-        $this->app->bind(BookingServiceRepositoryInterface::class, EloquentBookingServiceRepository::class);       
+        $this->app->bind(BookingServiceRepositoryInterface::class, EloquentBookingServiceRepository::class);   
+        $this->app->bind(BookingExtensionRepositoryInterface::class, EloquentBookingExtensionRepository::class);    
         $this->app->bind(BookingPricingSnapshotRepositoryInterface::class, EloquentBookingPricingSnapshotRepository::class);
         $this->app->bind(RoomStatusHistoryRepositoryInterface::class, EloquentRoomStatusHistoryRepository::class);
+        $this->app->bind(PaymentRepositoryInterface::class, EloquentPaymentRepository::class);
+        $this->app->bind(PaymentDetailRepositoryInterface::class, EloquentPaymentDetailRepository::class);
     }
 
     /**

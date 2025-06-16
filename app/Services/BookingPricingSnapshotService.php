@@ -23,17 +23,20 @@ class BookingPricingSnapshotService
 
     public function create(RoomPricing $pricing, int $booking_id)
     {
-        $data = [
-            'booking_id' => $booking_id,
-            'base_duration' => $pricing->base_duration,
-            'base_price' => $pricing->base_price,
-            'extra_hour_price' => $pricing->extra_hour_price,
-            'overnight_price' => $pricing->overnight_price,
-            'daily_price' => $pricing->daily_price,
-        ];
+        $data = array_merge(
+            ['booking_id' => $booking_id],
+            $pricing->only([
+                'base_duration',
+                'base_price',
+                'extra_hour_price',
+                'overnight_price',
+                'daily_price',
+            ])
+        );
 
         return $this->repo->create($data);
     }
+
 
     public function getById($id)
     {

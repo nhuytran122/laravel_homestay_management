@@ -38,12 +38,10 @@ class RoomTypeController extends Controller
 
     public function store(RoomTypeRequest $request)
     {
-        $room_type = $this->roomTypeService->create($request->validated());
-
-        if ($request->hasFile('image')) {
-            $room_type->addMediaFromRequest('image')->toMediaCollection('images');
-        }
-
+        $room_type = $this->roomTypeService->create(
+            $request->validated(),
+            $request->file('image')
+        );
         return response()->json([
             'data' => $room_type,
             'message' => 'Tạo mới phòng thành công'
@@ -65,11 +63,8 @@ class RoomTypeController extends Controller
 
     public function update(RoomTypeRequest $request, string $id)
     {
-        $room_type = $this->roomTypeService->update($id, $request->validated());
-        if ($request->hasFile('image')) {
-            $room_type->clearMediaCollection('images');
-            $room_type->addMediaFromRequest('image')->toMediaCollection('images');
-        }
+        $room_type = $this->roomTypeService->update($id, $request->validated(), 
+                                                    $request->file('image'));
         return response()->json([
             'data' => $room_type,
             'message' => 'Cập nhật loại phòng thành công'

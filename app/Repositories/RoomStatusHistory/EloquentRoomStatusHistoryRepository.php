@@ -1,5 +1,7 @@
 <?php
 namespace App\Repositories\RoomStatusHistory;
+
+use App\Enums\RoomStatus;
 use App\Models\RoomStatusHistory;
 use App\Repositories\RoomStatusHistory\RoomStatusHistoryRepositoryInterface;
 
@@ -38,6 +40,13 @@ use App\Repositories\RoomStatusHistory\RoomStatusHistoryRepositoryInterface;
                 ->where('started_at', '<', $checkOut)
                 ->where('ended_at', '>', $checkIn)
                 ->exists();
+        }
+
+        public function getScheduleByBookingIdAndStatus(int $bookingId, RoomStatus $status)
+        {
+            return RoomStatusHistory::where('booking_id', $bookingId)
+                ->where('status', $status) 
+                ->first();
         }
 
     }

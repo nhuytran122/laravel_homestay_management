@@ -16,10 +16,11 @@ return new class extends Migration
             $table->foreignId('payment_id')->constrained()->onDelete('cascade');
             $table->foreignId('booking_service_id')->nullable()->constrained()->onDelete('cascade');
             $table->unsignedBigInteger('extension_id');
-            $table->foreign('extension_id')->references('id')->on('booking_extensions')->onDelete('cascade');
+            $table->foreign('extension_id')->nullable()->references('id')->on('booking_extensions')->onDelete('cascade');
             $table->enum('payment_purpose', ['ROOM_BOOKING', 'PREPAID_SERVICE', 'ADDITIONAL_SERVICE', 'EXTENDED_HOURS']);
             $table->decimal('base_amount', 10, 2)->default(0)->check('base_amount >= 0');
             $table->decimal('final_amount', 10, 2)->default(0)->check('final_amount >= 0');
+            $table->timestamps();
         });
     }
 

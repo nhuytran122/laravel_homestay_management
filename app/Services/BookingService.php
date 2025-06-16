@@ -9,6 +9,7 @@ use App\Repositories\Booking\BookingRepositoryInterface;
 use App\DTOs\BookingPriceDTO;
 use App\Enums\BookingStatus;
 use App\Enums\RoomPricingType;
+use App\Models\BookingExtension;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,7 @@ class BookingService
     private RoomPricingService $roomPricingService;
     private BookingPricingSnapshotService $bookingPricingSnapshotService;
     private RoomStatusHistoryService $roomStatusHistoryService;
+    private BookingExtensionService $bookingExtensionService;
 
     public function __construct(BookingRepositoryInterface $repo, RoomPricingService $roomPricingService,
         BookingPricingSnapshotService $bookingPricingSnapshotService, RoomStatusHistoryService $roomStatusHistoryService)
@@ -55,11 +57,9 @@ class BookingService
     public function getById($id): Booking
     {
         $booking = $this->repo->findById($id);
-
         if (!$booking) {
             throw new ModelNotFoundException("Không tìm thấy đơn đặt phòng với ID: $id");
         }
-
         return $booking;
     }
 
@@ -86,6 +86,22 @@ class BookingService
             return $booking;
         });
         
+    }
+
+    public function handleSaveBookingAfterExtend(int $bookingId, BookingExtension $bookingExtension)
+    {
+        $currentBooking = $this->getById($bookingId);
+        $oldCheckout = $bookingExtension->booking->check_out;
+        $extendedHours = $bookingExtension->extended_hours;
+        $extraMinutes = round($extendedHours * 60);
+
+        $newCheckout = Carbon::parse($oldCheckout)->addMinutes($extraMinutes);
+        $currentBooking->check_out = $newCheckout;
+
+        $discountedPrice = $this->bookingExtensionService->calculateFinalExtensionAmount($bookingExtension);
+        $currentBooking->total_amount += $discountedPrice;
+
+        $currentBooking->save();
     }
 
     public function calculateTotalAmountBookingRoom(Booking $booking): float

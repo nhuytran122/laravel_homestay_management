@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Enums\BookingStatus;
+use App\Enums\PaymentPurpose;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BookingRequest;
 use App\Http\Requests\BookingServiceRequest;
@@ -47,11 +48,12 @@ class BookingController extends Controller
         ], 201)->header('Location', route('booking.selectService', $booking->id));  
     }
 
-    public function selectService(int $booking_id){
+    public function selectService(Booking $booking){
         $user = Auth::user();
         $customer = $user->customer;
         $customer_id = $customer->id;
 
+        $booking_id = $booking->id;
         if (!$booking_id) {
             return response()->json([
                 'message' => 'Yêu cầu không hợp lệ. Vui lòng đặt phòng trước khi thực hiện đặt dịch vụ'
@@ -76,11 +78,13 @@ class BookingController extends Controller
         ], 201)->header('Location', route('booking.confirmService', $booking->id));  
     }
 
-    public function postConfirmBookingService(BookingServiceRequest $request, int $booking_id)
+    public function postConfirmBookingService(BookingServiceRequest $request, Booking $booking)
     {
         $user = Auth::user();
         $customer = $user->customer;
         $customer_id = $customer->id;
+
+        $booking_id = $booking->id;
 
         if (!$booking_id) {
             return response()->json([
@@ -125,11 +129,14 @@ class BookingController extends Controller
             'next_url' => route('booking.getBookingConfirmationPage', $booking->id),
         ], 201)->header('Location', route('booking.getBookingConfirmationPage', $booking->id));  
     }
-        public function getBookingConfirmationPage(int $booking_id)
+    
+    public function getBookingConfirmationPage(Booking $booking)
     {
         $user = Auth::user();
         $customer = $user->customer;
         $customer_id = $customer->id;
+
+        $booking_id = $booking->id;
 
         if (!$booking_id) {
             return response()->json([
@@ -148,20 +155,19 @@ class BookingController extends Controller
                 'message' => 'Yêu cầu không hợp lệ. Đơn đặt phòng không ở trạng thái thích hợp '
             ], 400);
         }
-        // return response()->json([
-        //     'booking' => $booking,
-        //     'total_amount' => $booking->total_amount,
-        //     'message' => 'Xác nhận dịch vụ thành công',
-        //     'next_url' => route('booking.getBookingConfirmationPage', $booking->id),
-        // ], 201)->header('Location', route('booking.getBookingConfirmationPage', $booking->id));  
         return response()->json([
             'booking' => $booking,
             'total_amount' => $booking->total_amount,
-            'message' => 'Xác nhận dịch vụ thành công',
-            'next_url' => 'Xử lý URL thanh toán',
-        ], 201);
+            'message' => 'Xác nhận dịch vụ thành công, tiến hành thanh toán',
+            'next_url' => route('checkout', [
+                'bookingId' => $booking->id,
+                'paymentPurpose' => PaymentPurpose::ROOM_BOOKING
+            ]),
+        ], 201)->header('Location', route('checkout', [
+            'bookingId' => $booking->id,
+            'paymentPurpose' => PaymentPurpose::ROOM_BOOKING
+        ]));
     }
-
 
     /**
      * Store a newly created resource in storage.

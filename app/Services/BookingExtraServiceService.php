@@ -66,7 +66,7 @@ class BookingExtraServiceService
 
     public function findByBookingId(int $bookingId)
     {
-        return $this->findByBookingId($bookingId);
+        return $this->repo->findByBookingId($bookingId);
     }
 
     public function deleteByBookingId(int $bookingId): void
@@ -87,7 +87,7 @@ class BookingExtraServiceService
         DB::transaction(function () use ($bService, $bookingServiceId) {
             if (!is_null($bService->quantity)) {
                 $booking = $bService->booking;
-                $customer = $bService->booking->customer;
+                $customer = $booking->customer;
 
                 $rawTotal = $bService->getRawTotalAmount();
 
@@ -110,4 +110,32 @@ class BookingExtraServiceService
         return !$hasPaid;
     }
 
+    public function findBookingServicesWithoutPaymentDetailByBookingId($bookingId)
+    {
+        return $this->repo->findBookingServicesWithoutPaymentDetailByBookingId($bookingId);
+    }
+
+    public function calculateUnpaidServicesTotalAmount(int $bookingId): float
+    {
+        $unpaidServices = $this->findBookingServicesWithoutPaymentDetailByBookingId($bookingId);
+
+        if ($unpaidServices->isEmpty()) {
+            return 0.0;
+        }
+
+        $customer = $unpaidServices->first()->booking->customer;
+        $totalAmount = 0.0;
+
+        foreach ($unpaidServices as $bookingService) {
+            if (!is_null($bookingService->quantity)) {
+                $totalAmount += $bookingService->getRawTotalAmount();
+            }
+        }
+        $discountAmount = DiscountHelper::calculateDiscountAmount($totalAmount, $customer);
+        return $totalAmount - $discountAmount;
+    }
+
+    public function existsByBookingId(int $bookingId){
+        return $this->repo->existsByBookingId($bookingId);
+    }
 }

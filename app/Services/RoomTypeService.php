@@ -3,12 +3,15 @@
 namespace App\Services;
 
 use App\Repositories\RoomType\RoomTypeRepositoryInterface;
+use App\Traits\HasFileUpload;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class RoomTypeService
 {
+    use HasFileUpload;
     private RoomTypeRepositoryInterface $repo;
     private RoomPricingService $roomPricingService;
 
@@ -28,28 +31,34 @@ class RoomTypeService
         return $this->repo->search($keyword);
     }
 
-
-    public function create(array $data)
+    public function create(array $data, ?UploadedFile $image = null)
     {
-        return DB::transaction(function () use ($data){
+        return DB::transaction(function () use ($data, $image) {
             $room_type = $this->repo->create($data);
+
             $room_pricing = $this->copyDataRoomPricing($data);
             $room_pricing['room_type_id'] = $room_type->id;
-            $this->roomPricingService->create($room_pricing);   
-            return $room_type->refresh();     
+            $this->roomPricingService->create($room_pricing);
+            
+            $this->uploadFileToCollection($room_type, $image, 'images');
+
+            return $room_type->refresh();
         });
     }
 
-    public function update($id, array $data)
+
+    public function update($id, array $data, ?UploadedFile $image = null)
     {
         $this->getById($id);
-        return DB::transaction(function () use ($data, $id){
+        return DB::transaction(function () use ($data, $id, $image){
             $room_type = $this->repo->update($id, $data);
 
             $current_room_pricing = $this->roomPricingService->getDefaultPricingByRoomTypeId($id);
             $room_pricing = $this->copyDataRoomPricing($data);
             $room_pricing['room_type_id'] = $id;
             $this->roomPricingService->update($current_room_pricing->id, $room_pricing);   
+
+            $this->replaceMedia($room_type, $image, 'images');
 
             return $room_type->refresh();     
         });

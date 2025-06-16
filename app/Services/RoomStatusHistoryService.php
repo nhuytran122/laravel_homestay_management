@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\RoomStatus;
 use App\Models\Booking;
+use App\Models\BookingExtension;
 use App\Repositories\RoomStatusHistory\RoomStatusHistoryRepositoryInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
@@ -45,6 +46,12 @@ class RoomStatusHistoryService
         return $room_status_history;
     }
 
+    public function getScheduleByBookingIdAndStatus(int $bookingId, RoomStatus $status)
+    {
+        return $this->repo->getScheduleByBookingIdAndStatus($bookingId, $status);
+    }
+
+
     public function existsOverlappingStatuses($roomId, $checkIn, $checkOut){
         return $this->repo->existsOverlappingStatuses($roomId, $checkIn, $checkOut);
     }
@@ -52,7 +59,7 @@ class RoomStatusHistoryService
     public function handleStatusWhenBooking(Booking $booking): void
     {
         DB::transaction(function () use ($booking){
-            // 1. Trạng thái PENDING_BOOKING trong thời gian ở
+            // 1. Trạng thái BUSY trong thời gian ở
             $this->create([
                 'room_id' => $booking->room_id,
                 'status' => RoomStatus::BUSY,
@@ -74,4 +81,21 @@ class RoomStatusHistoryService
             ]);
         });
     }
+
+    public function handleBookingExtensions(BookingExtension $bookingExtension)
+    {
+        $booking = $bookingExtension->booking; 
+        $cleaningHours = Config::get('custom.cleaning_hours');
+        $newCheckout = Carbon::parse($booking->check_out);
+        $busyStatus = $this->getScheduleByBookingIdAndStatus($booking->id, RoomStatus::BUSY);
+        
+        $busyStatus->ended_at = $newCheckout;
+        $busyStatus->save();
+
+        $cleanStatus = $this->getScheduleByBookingIdAndStatus($booking->id, RoomStatus::CLEANING);
+        $cleanStatus->started_at = $newCheckout;
+        $cleanStatus->ended_at = $newCheckout->copy()->addHours($cleaningHours);
+        $cleanStatus->save();
+    }
+
 }

@@ -38,10 +38,8 @@ class BranchController extends Controller
 
     public function store(BranchRequest $request)
     {
-        $branch = $this->branchService->create($request->validated());
-        if ($request->hasFile('image')) {
-            $branch->addMediaFromRequest('image')->toMediaCollection('images');
-        }
+        $branch = $this->branchService->create($request->validated(),
+                                                $request->file('image'));
         return response()->json([
             'data' => $branch,
             'message' => 'Tạo mới chi nhánh thành công'
@@ -63,11 +61,8 @@ class BranchController extends Controller
 
     public function update(BranchRequest $request, string $id)
     {
-        $branch = $this->branchService->update($id, $request->validated());
-        if ($request->hasFile('image')) {
-            $branch->clearMediaCollection('images');
-            $branch->addMediaFromRequest('image')->toMediaCollection('images');
-        }
+        $branch = $this->branchService->update($id, $request->validated(),
+                                                    $request->file('image'));
         return response()->json([
             'data' => $branch,
             'message' => 'Cập nhật chi nhánh thành công'

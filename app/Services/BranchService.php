@@ -3,11 +3,14 @@
 namespace App\Services;
 
 use App\Repositories\Branch\BranchRepositoryInterface;
+use App\Traits\HasFileUpload;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
 class BranchService
 {
+    use HasFileUpload;
     private BranchRepositoryInterface $repo;
 
     public function __construct(BranchRepositoryInterface $repo)
@@ -26,15 +29,19 @@ class BranchService
     }
 
 
-    public function create(array $data)
+    public function create(array $data, ?UploadedFile $image = null)
     {
-        return $this->repo->create($data);
+        $branch = $this->repo->create($data);
+        $this->uploadFileToCollection($branch, $image, 'images');
+        return $data;
     }
 
-    public function update($id, array $data)
+    public function update($id, array $data, ?UploadedFile $image = null)
     {
         $this->getById($id);
-        return $this->repo->update($id, $data);
+        $branch = $this->repo->update($id, $data);
+        $this->replaceMedia($branch, $image, 'images');
+        return $branch;
     }
 
     public function delete($id)

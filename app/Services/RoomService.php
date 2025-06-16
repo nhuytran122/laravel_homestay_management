@@ -3,11 +3,14 @@
 namespace App\Services;
 
 use App\Repositories\Room\RoomRepositoryInterface;
+use App\Traits\HasFileUpload;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
 class RoomService
 {
+    use HasFileUpload;
     private RoomRepositoryInterface $repo;
 
     public function __construct(RoomRepositoryInterface $repo)
@@ -26,15 +29,19 @@ class RoomService
     }
 
 
-    public function create(array $data)
+    public function create(array $data, ?UploadedFile $image = null)
     {
-        return $this->repo->create($data);
+        $room = $this->repo->create($data);
+        $this->uploadFileToCollection($room, $image, 'images');
+        return $room;
     }
 
-    public function update($id, array $data)
+    public function update($id, array $data, ?UploadedFile $image = null)
     {
         $this->getById($id);
-        return $this->repo->update($id, $data);
+        $room = $this->repo->update($id, $data);
+        $this->replaceMedia($room, $image, 'images');
+        return $room;
     }
 
     public function delete($id)

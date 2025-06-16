@@ -18,6 +18,7 @@ class RoomTypeRequest extends DefaultRoomPricingRequest
         return array_merge($rules, [
             'name' => 'required|string|max:255',
             'max_guest' => 'required|numeric|min:1',
+            'image' => 'nullable|file|mimes:jpg,png|max:2048',
         ]);
     }
 }
