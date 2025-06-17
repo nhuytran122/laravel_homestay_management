@@ -3,7 +3,9 @@ namespace App\Repositories\Payment;
 
 use App\Enums\PaymentStatus;
 use App\Enums\PaymentType;
+use App\Models\Booking;
 use App\Models\Payment;
+use Illuminate\Support\Collection;
 
     class EloquentPaymentRepository implements PaymentRepositoryInterface{
         public function findById($id)
@@ -24,10 +26,12 @@ use App\Models\Payment;
         {
             return Payment::all();
         }
-
-        public function create($data)
+        
+        public function getCompletedPaymentsByBooking(Booking $booking): Collection
         {
-            return Payment::create($data);
+            $booking_id = $booking->id;
+            return Payment::where('booking_id', $booking_id)
+                ->where('status', PaymentStatus::COMPLETED)
+                ->get();
         }
-
     }

@@ -7,7 +7,7 @@ enum TransactionType: string
     case IMPORT = 'IMPORT';
     case EXPORT = 'EXPORT';
 
-    public function displayName(): string
+    public function label(): string
     {
         return match ($this) {
             self::IMPORT => 'Nhập kho',

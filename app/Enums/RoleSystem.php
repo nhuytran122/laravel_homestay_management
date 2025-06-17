@@ -9,7 +9,7 @@ enum RoleSystem: string
     case STAFF = 'STAFF';
     case CUSTOMER = 'CUSTOMER';
 
-    public function displayName(): string
+    public function label(): string
     {
         return match ($this) {
             self::MANAGER => 'Quản lý',

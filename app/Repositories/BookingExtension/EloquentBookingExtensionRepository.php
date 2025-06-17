@@ -13,6 +13,11 @@ use App\Repositories\BookingExtension\BookingExtensionRepositoryInterface;
         {
             return BookingExtension::all();
         }
+
+        public function create($data)
+        {
+            return BookingExtension::create($data);
+        }
     
         public function delete($id)
         {

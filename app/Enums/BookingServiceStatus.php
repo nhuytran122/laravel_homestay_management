@@ -9,7 +9,12 @@ enum BookingServiceStatus: string
     case COMPLETED = 'COMPLETED';
     case CANCELLED = 'CANCELLED';
 
-    public function displayName(): string
+    public static function values(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
+
+    public function label(): string
     {
         return match ($this) {
             self::PENDING => 'Đang chờ',

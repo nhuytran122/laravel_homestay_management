@@ -28,12 +28,11 @@ class BranchService
         return $this->repo->search($keyword);
     }
 
-
     public function create(array $data, ?UploadedFile $image = null)
     {
         $branch = $this->repo->create($data);
         $this->uploadFileToCollection($branch, $image, 'images');
-        return $data;
+        return $branch;
     }
 
     public function update($id, array $data, ?UploadedFile $image = null)

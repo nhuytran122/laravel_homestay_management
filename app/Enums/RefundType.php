@@ -8,13 +8,18 @@ enum RefundType: string
     case PARTIAL_70 = 'PARTIAL_70';
     case PARTIAL_30 = 'PARTIAL_30';
 
-    public function displayName(): string
+    public function label(): string
     {
         return match ($this) {
             self::FULL => 'Hoàn tiền 100%',
             self::PARTIAL_70 => 'Hoàn tiền 70%',
             self::PARTIAL_30 => 'Hoàn tiền 30%',
         };
+    }
+
+    public static function values(): array
+    {
+        return array_column(self::cases(), 'value');
     }
 
     public function description_policy(): string

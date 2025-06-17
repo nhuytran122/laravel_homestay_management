@@ -22,6 +22,12 @@ class BookingExtensionService
         return $this->repo->getAll();
     }
 
+    public function create(array $data)
+    {
+        $booking_extension = $this->repo->create($data);
+        return $booking_extension;
+    }
+
     public function delete($id)
     {
         $this->getById($id); 
@@ -59,7 +65,7 @@ class BookingExtensionService
     public function calculateRawTotalAmountBookingExtension(BookingExtension $bookingExtension): float
     {
         $booking = $bookingExtension->booking;
-        $roomType = $booking->room->roomType;
+        $roomType = $booking->room->room_type;
 
         $extraHourPrice = $booking->booking_pricing_snapshot->extra_hour_price;
         

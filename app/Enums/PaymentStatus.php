@@ -10,7 +10,7 @@ enum PaymentStatus: string
     case REFUNDED = 'REFUNDED';
     case PENDING_REFUND = 'PENDING_REFUND';
 
-    public function displayName(): string
+    public function label(): string
     {
         return match ($this) {
             self::PENDING => 'Đang chờ',

@@ -10,4 +10,5 @@ interface RoomStatusHistoryRepositoryInterface{
     public function delete($id);
     public function existsOverlappingStatuses($roomId, $checkIn, $checkOut);
     public function getScheduleByBookingIdAndStatus(int $bookingId, RoomStatus $status);
+    public function deleteByBookingId($bookingId);
 }

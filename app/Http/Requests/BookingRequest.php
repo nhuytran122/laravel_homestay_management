@@ -2,13 +2,10 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\RoleSystem;
 use App\Services\RoomService;
 use App\Services\RoomStatusHistoryService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
-use PDO;
-use PHPUnit\Event\Telemetry\System;
 
 class BookingRequest extends FormRequest
 {
@@ -48,6 +45,7 @@ class BookingRequest extends FormRequest
 
             if($input_guests > $max_guest){
                 $v->errors()->add('guest_count', 'Số khách cư trú vượt quá cho phép');
+                return;
             }
 
             $input_checkin = $this->input('check_in');
@@ -57,6 +55,7 @@ class BookingRequest extends FormRequest
 
             if($isOverlapping){
                 $v->errors()->add('check_in', 'Phòng này đã có lịch trong thời gian bạn chọn, vui lòng chọn thời gian khác hoặc phòng khác');
+                return;
             }
         }); 
     }
@@ -76,7 +75,5 @@ class BookingRequest extends FormRequest
             }
         }
     }
-
-
 
 }

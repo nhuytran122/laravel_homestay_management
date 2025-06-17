@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\BookingServiceStatus;
 use App\Helpers\DiscountHelper;
 use App\Models\BookingService;
 use App\Repositories\BookingService\BookingServiceRepositoryInterface;
@@ -138,4 +139,36 @@ class BookingExtraServiceService
     public function existsByBookingId(int $bookingId){
         return $this->repo->existsByBookingId($bookingId);
     }
+
+    public function getByBookingAndPrepaidType($bookingId, bool $isPrepaid){
+        return $this->repo->getByBookingAndPrepaidType($bookingId, $isPrepaid);
+    }
+
+    public function hasPostpaidService(int $bookingId){
+        return $this->repo->hasPostpaidService($bookingId);
+    }
+
+    public function allPostpaidServicesHaveQuantity(int $bookingId){
+        return !$this->repo->existsPostpaidServiceWithoutQuantity($bookingId);
+    }
+
+    public function bulkUpdateServiceStatusByBookingId(int $bookingId, BookingServiceStatus $status){
+        return $this->repo->bulkUpdateServiceStatusByBookingId($bookingId, $status);
+    }
+
+    public function saveMultipleBookingServices(array $services, int $bookingId)
+    {
+        DB::transaction(function() use ($services, $bookingId){
+            foreach ($services as $svc) {
+                $bookingService = new BookingService([
+                    'booking_id' => $bookingId,
+                    'service_id' => $svc['serviceId'],
+                    'quantity' => $svc['quantity'] ?? null,
+                    'description' => $svc['description'] ?? null,
+                ]);
+                $this->handleSaveBookingServiceExtra($bookingService);
+            }
+        });
+    }
+
 }

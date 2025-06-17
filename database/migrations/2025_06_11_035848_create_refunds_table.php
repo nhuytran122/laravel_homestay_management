@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('payment_id')->constrained()->onDelete('cascade');
             $table->enum('refund_type', ['FULL', 'PARTIAL_70', 'PARTIAL_30']);
             $table->decimal('refund_amount', 10, 2)->default(0);
-            $table->enum('status', ['PENDING_REFUND', 'REFUNDED'])->default('PENDING_REFUND');
+            $table->enum('status', ['REQUESTED', 'APPROVED', 'REJECTED', 'COMPLETED'])->default('REQUESTED');
             $table->string('vnp_transaction_no', 50)->nullable();
             $table->timestamps();
         });

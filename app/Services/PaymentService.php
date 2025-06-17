@@ -111,7 +111,6 @@ class PaymentService
                     ->getLatestByBookingId($booking_id);
 
                 $this->bookingService->handleSaveBookingAfterExtend($booking_id, $bookingExtension);
-
                 $this->roomStatusHistoryService->handleBookingExtensions($bookingExtension);
             }
 

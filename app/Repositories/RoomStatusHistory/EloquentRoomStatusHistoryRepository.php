@@ -48,5 +48,10 @@ use App\Repositories\RoomStatusHistory\RoomStatusHistoryRepositoryInterface;
                 ->where('status', $status) 
                 ->first();
         }
+        
+        public function deleteByBookingId($bookingId)
+        {
+            return RoomStatusHistory::where('booking_id', $bookingId)->delete();
+        }
 
     }

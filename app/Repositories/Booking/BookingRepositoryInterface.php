@@ -7,4 +7,6 @@ interface BookingRepositoryInterface{
     public function getAll();
     public function update($id, array $data);
     public function delete($id);
+    public function getListBookingsByCustomerID($id);
+    public function searchBookingsByCustomer(int $customerId, ?array $filters, int $perPage = 10);
 }

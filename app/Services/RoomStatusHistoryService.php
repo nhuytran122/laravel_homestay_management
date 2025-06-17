@@ -98,4 +98,8 @@ class RoomStatusHistoryService
         $cleanStatus->save();
     }
 
+    public function deleteByBookingId($bookingId){
+        return $this->repo->deleteByBookingId($bookingId);
+    }
+
 }

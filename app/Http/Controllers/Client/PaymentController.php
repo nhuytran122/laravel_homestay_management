@@ -6,14 +6,13 @@ use App\Enums\PaymentPurpose;
 use App\Enums\PaymentStatus;
 use App\Enums\PaymentType;
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\Payment;
 use App\Services\BookingExtensionService;
 use App\Services\BookingService;
 use Illuminate\Http\Request;
 use App\Services\PaymentService;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
 
 class PaymentController extends Controller
 {
@@ -28,25 +27,9 @@ class PaymentController extends Controller
         $this->bookingExtensionService = $bookingExtensionService;
     }
     
-    public function handlePay(Request $request)
+    public function handlePay(Booking $booking, Request $request)
     {
-        $booking_id = $request->query('bookingId');
-        $user = Auth::user();
-        $customer = $user->customer;
-        $customer_id = $customer->id;
-
-        if (!$booking_id) {
-            return response()->json([
-                'message' => 'Yêu cầu không hợp lệ. Vui lòng đặt phòng trước khi thực hiện xác nhận'
-            ], 400);
-        }
-
-        $booking = $this->bookingService->getById($booking_id);
-        if ($booking->customer->id !== $customer_id) {
-            return response()->json([
-                'message' => 'Yêu cầu không hợp lệ. Đơn đặt phòng không thuộc quyền truy cập của bạn'
-            ], 403);
-        }
+        $booking_id = $booking->id;
         
         $purposeValue = $request->query('paymentPurpose');
 
@@ -56,6 +39,24 @@ class PaymentController extends Controller
             return response()->json([
                 'message' => 'Mục đích thanh toán không hợp lệ',
             ], 400);
+        }
+
+        switch ($paymentPurpose) {
+            case PaymentPurpose::ROOM_BOOKING:
+                $this->authorize('payRoom', $booking);
+                break;
+            case PaymentPurpose::EXTENDED_HOURS:
+                $this->authorize('bookAndPayAdditionalBooking', $booking);
+                break;
+            case PaymentPurpose::ADDITIONAL_SERVICE:
+                $this->authorize('bookAndPayAdditionalBooking', $booking);
+                break;
+            case PaymentPurpose::PREPAID_SERVICE:
+                $this->authorize('bookAndPayAdditionalBooking', $booking);
+                break;
+
+            default:
+                abort(400, 'Mục đích thanh toán không hợp lệ');
         }
 
         $paymentUrl = $this->paymentService->createVnPayPaymentURL($request, $booking_id, $paymentPurpose);
@@ -89,24 +90,34 @@ class PaymentController extends Controller
             $payment->vnp_transaction_no = $vnpTransactionNo;
 
             $booking = $this->bookingService->getById($bookingId);
-            $payment->booking_id = $booking->id;
+            $payment->booking_id = $bookingId;
 
             $vnpAmountStr = $request->query('vnp_Amount');
             if (!$vnpAmountStr) {
-                abort(400, 'vnp_Amount không tồn tại');
+                return response()->json([
+                    'message' => 'vnp_Amount không tồn tại'
+                ], 400);
             }
             $payment->total_amount = (float) $vnpAmountStr / 100;
 
             $this->paymentService->handleSavePaymentWhenCheckout($payment, $paymentPurpose);
 
-            return Redirect::to("/booking/booking-history/$bookingId");
+            return response()->json([
+                'booking' => $booking,
+                'message' => 'Xác nhận và thanh toán thành công',
+                'next_url' => route('booking.show', [
+                    'booking' => $booking,
+                ]),
+            ], 201)->header('Location', route('booking.show', [
+                'booking' => $booking->refresh(),
+            ]));
         }
 
         if ($status === '24' && $paymentPurpose === PaymentPurpose::EXTENDED_HOURS) {
             $this->bookingExtensionService->deleteLatestExtensionByBookingId($bookingId);
-            return Redirect::to('/checkout/payment-failed')->with('errorMessage', 'Giao dịch của bạn đã bị hủy');
         }
-
-        return Redirect::to('/checkout/payment-failed');
+        return response()->json([
+            'message' => 'Giao dịch thất bại'
+        ]);
     }
 }

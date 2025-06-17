@@ -10,7 +10,7 @@ enum MaintenanceStatus: string
     case COMPLETED = 'COMPLETED';
     case ON_HOLD = 'ON_HOLD';
 
-    public function displayName(): string
+    public function l(): string
     {
         return match ($this) {
             self::PENDING => 'Đang chờ',

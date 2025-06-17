@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\PaymentStatus;
+use App\Enums\RefundStatus;
 use App\Enums\RefundType;
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,7 +13,7 @@ class Refund extends Model
 
     protected $casts = [
         'refund_type' => RefundType::class,
-        'status' => PaymentStatus::class,
+        'status' => RefundStatus::class,
     ];
 
     public function payment(){

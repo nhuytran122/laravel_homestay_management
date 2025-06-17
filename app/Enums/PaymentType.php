@@ -7,7 +7,7 @@ enum PaymentType: string
     case CASH = 'CASH';
     case TRANSFER = 'TRANSFER';
 
-    public function displayName(): string
+    public function label(): string
     {
         return match ($this) {
             self::CASH => 'Tiền mặt',

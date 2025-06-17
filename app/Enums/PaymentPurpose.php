@@ -9,7 +9,7 @@ enum PaymentPurpose: string
     case ADDITIONAL_SERVICE = 'ADDITIONAL_SERVICE';
     case EXTENDED_HOURS= 'EXTENDED_HOURS';
 
-    public function displayName(): string
+    public function label(): string
     {
         return match ($this) {
             self::ROOM_BOOKING => 'Thanh toán tiền phòng ban đầu',

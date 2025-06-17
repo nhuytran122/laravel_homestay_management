@@ -22,6 +22,8 @@ use App\Repositories\Payment\EloquentPaymentRepository;
 use App\Repositories\Payment\PaymentRepositoryInterface;
 use App\Repositories\PaymentDetail\EloquentPaymentDetailRepository;
 use App\Repositories\PaymentDetail\PaymentDetailRepositoryInterface;
+use App\Repositories\Refund\EloquentRefundRepository;
+use App\Repositories\Refund\RefundRepositoryInterface;
 use App\Repositories\Role\EloquentRoleRepository;
 use App\Repositories\Role\RoleRepositoryInterface;
 use App\Repositories\Room\EloquentRoomRepository;
@@ -62,6 +64,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(RoomStatusHistoryRepositoryInterface::class, EloquentRoomStatusHistoryRepository::class);
         $this->app->bind(PaymentRepositoryInterface::class, EloquentPaymentRepository::class);
         $this->app->bind(PaymentDetailRepositoryInterface::class, EloquentPaymentDetailRepository::class);
+        $this->app->bind(RefundRepositoryInterface::class, EloquentRefundRepository::class);
     }
 
     /**

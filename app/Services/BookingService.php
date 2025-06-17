@@ -7,9 +7,13 @@ use App\Models\Booking;
 use App\Models\RoomPricing;
 use App\Repositories\Booking\BookingRepositoryInterface;
 use App\DTOs\BookingPriceDTO;
+use App\Enums\BookingServiceStatus;
 use App\Enums\BookingStatus;
+use App\Enums\CancellationStatus;
 use App\Enums\RoomPricingType;
 use App\Models\BookingExtension;
+use App\Repositories\BookingService\BookingServiceRepositoryInterface;
+use App\Repositories\Payment\PaymentRepositoryInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -21,26 +25,30 @@ class BookingService
     private BookingPricingSnapshotService $bookingPricingSnapshotService;
     private RoomStatusHistoryService $roomStatusHistoryService;
     private BookingExtensionService $bookingExtensionService;
+    private RefundService $refundService;
+    private PaymentRepositoryInterface $paymentRepository;
+    private BookingServiceRepositoryInterface $bookingServiceRepository;
 
     public function __construct(BookingRepositoryInterface $repo, RoomPricingService $roomPricingService,
-        BookingPricingSnapshotService $bookingPricingSnapshotService, RoomStatusHistoryService $roomStatusHistoryService)
+        BookingPricingSnapshotService $bookingPricingSnapshotService, RoomStatusHistoryService $roomStatusHistoryService,
+        RefundService $refundService, PaymentRepositoryInterface $paymentRepository,
+        BookingServiceRepositoryInterface $bookingServiceRepository, BookingExtensionService $bookingExtensionService)
     {
         $this->repo = $repo;
         $this->roomPricingService = $roomPricingService;
         $this->bookingPricingSnapshotService = $bookingPricingSnapshotService;
         $this->roomStatusHistoryService = $roomStatusHistoryService;
+        $this->refundService = $refundService;
+        $this->paymentRepository = $paymentRepository;
+        $this->bookingServiceRepository = $bookingServiceRepository;
+        $this->bookingExtensionService = $bookingExtensionService;
     }
 
     public function getAll()
     {
         return $this->repo->getAll();
     }
-
-    public function create(array $data)
-    {
-        return $this->repo->create($data);
-    }
-
+    
     public function updateStatus(Booking $booking, BookingStatus $status): Booking
     {
         $booking->status = $status;
@@ -248,4 +256,54 @@ class BookingService
             return RoomPricingType::HOURLY;
         }
     }
+
+    public function getListBookingsByCustomerID($customer_id){
+        return $this->repo->getListBookingsByCustomerID($customer_id);
+    }
+
+    public function searchBookingsByCustomer(int $customerId, ?array $filters, int $perPage = 10)
+    {
+        return $this->repo->searchBookingsByCustomer($customerId, $filters, $perPage);
+    }
+    
+    public function checkCancelability(int $bookingId): CancellationStatus
+    {
+        $booking = $this->getById($bookingId);
+        $status = $booking->status;
+        if ($status === BookingStatus::CANCELLED) {
+            return CancellationStatus::DENIED_ALREADY_CANCELLED;
+        }
+        if ($status === BookingStatus::COMPLETED) {
+            return CancellationStatus::DENIED_ALREADY_COMPLETED;
+        }
+        if ($status === BookingStatus::EXPIRED) {
+            return CancellationStatus::DENIED_EXPIRED;
+        }
+        if (Carbon::now()->greaterThan(Carbon::parse($booking->check_in))) {
+            return CancellationStatus::DENIED_CHECKIN_TIME_PASSED;
+        }
+        return CancellationStatus::ALLOWED;
+    }
+
+    public function cancelBooking(int $bookingId): Booking
+    {
+        return DB::transaction(function () use ($bookingId){
+            $booking = $this->getById($bookingId);
+            $this->roomStatusHistoryService->deleteByBookingId($bookingId);
+            $this->bookingServiceRepository->bulkUpdateServiceStatusByBookingId($bookingId, BookingServiceStatus::CANCELLED);
+
+            $status = $booking->status;
+            if($status === BookingStatus::CONFIRMED){
+                $payments = $this->paymentRepository->getCompletedPaymentsByBooking($booking);
+                foreach($payments as $payment){
+                    $this->refundService->createPendingRefund($payment, $booking);
+                }
+            }
+            $booking->status = BookingStatus::CANCELLED;
+            $booking->save();
+            return $booking;
+        });
+    }
+
+
 }

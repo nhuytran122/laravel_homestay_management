@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('booking_id')->constrained()->onDelete('cascade');
             $table->foreignId('service_id')->nullable()->constrained()->onDelete('set null');
-            $table->integer('quantity')->check('quantity > 0');
+            $table->integer('quantity')->nullable()->check('quantity > 0');
             $table->enum('status', ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']);
             $table->text('description')->nullable();
             $table->timestamps();

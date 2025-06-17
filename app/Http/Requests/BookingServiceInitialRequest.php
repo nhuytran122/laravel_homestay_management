@@ -3,9 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Services\ExtraServiceService;
-use Illuminate\Foundation\Http\FormRequest;
 
-class BookingServiceRequest extends FormRequest
+class BookingServiceInitialRequest extends BaseBookingServiceRequest
 {
     public function authorize(): bool
     {
@@ -14,12 +13,9 @@ class BookingServiceRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-            'services' => 'required|array',
-            'services.*.serviceId' => 'required|exists:services,id',
+        return array_merge(parent::baseRules(), [
             'services.*.quantity' => 'required|numeric|min:1',
-            'services.*.description' => 'nullable|string|max:255',
-        ];
+        ]);
     }
 
     public function withValidator($validator)

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\RoleSystem;
 use Illuminate\Database\Eloquent\Model;
 
 class Role extends Model
@@ -9,6 +10,9 @@ class Role extends Model
     protected $fillable = [
         'role_name',
         'description'
+    ];
+    protected $casts = [
+        'role_name' => RoleSystem::class,
     ];
     public $timestamps = false;
 

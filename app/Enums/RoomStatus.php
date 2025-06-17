@@ -8,7 +8,7 @@ enum RoomStatus: string
     case CLEANING = 'CLEANING';
     case MAINTENANCE = 'MAINTENANCE';
 
-    public function displayName(): string
+    public function label(): string
     {
         return match ($this) {
             self::BUSY => 'Đã đặt',
