@@ -1,28 +1,16 @@
 <?php
 namespace App\Repositories\BookingExtension;
+
+use App\Enums\BookingExtensionStatus;
 use App\Models\BookingExtension;
+use App\Repositories\BaseEloquentRepository;
 use App\Repositories\BookingExtension\BookingExtensionRepositoryInterface;
 
-    class EloquentBookingExtensionRepository implements BookingExtensionRepositoryInterface{
-        public function findById($id)
+    class EloquentBookingExtensionRepository extends BaseEloquentRepository implements BookingExtensionRepositoryInterface{
+        
+        public function __construct()
         {
-            return BookingExtension::find($id); 
-        }
-
-        public function getAll()
-        {
-            return BookingExtension::all();
-        }
-
-        public function create($data)
-        {
-            return BookingExtension::create($data);
-        }
-    
-        public function delete($id)
-        {
-            $booking = $this->findById($id);
-            return $booking->delete();
+            $this->model = new BookingExtension();
         }
 
         public function findByBookingId($bookingId)
@@ -42,23 +30,32 @@ use App\Repositories\BookingExtension\BookingExtensionRepositoryInterface;
             $this->delete($extension_id);
         }
 
-        private function unpaidBookingExtensionsQuery()
-        {
-            return BookingExtension::whereNotIn('id', function ($query) {
-                $query->select('extension_id')
-                    ->from('payment_details')
-                    ->whereNotNull('extension_id');
-            });
-        }
-
         public function getUnpaidBookingExtensions()
         {
-            return $this->unpaidBookingExtensionsQuery()->get();
+            return $this->baseUnpaidExtensionsQuery()->get();
         }
 
-        public function deleteUnpaidBookingExtensions(): int
+        public function expireUnpaidBookingExtensions(): int
         {
-            return $this->unpaidBookingExtensionsQuery()->delete();
+            return $this->baseUnpaidExtensionsQuery()
+                ->update(['status' => BookingExtensionStatus::EXPIRED]);
+        }
+
+        public function hasUnpaidExtensionByBookingId(int $bookingId): bool
+        {
+            return $this->baseUnpaidExtensionsQuery()
+                ->where('booking_id', $bookingId)
+                ->exists();
+        }
+
+        private function baseUnpaidExtensionsQuery()
+        {
+            return BookingExtension::where('status', BookingExtensionStatus::PENDING)
+                ->whereNotIn('id', function ($query) {
+                    $query->select('extension_id')
+                        ->from('payment_details')
+                        ->whereNotNull('extension_id');
+                });
         }
 
     }

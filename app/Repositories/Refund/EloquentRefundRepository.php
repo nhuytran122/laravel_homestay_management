@@ -4,11 +4,12 @@ namespace App\Repositories\Refund;
 use App\Enums\RefundStatus;
 use App\Enums\RefundType;
 use App\Models\Refund;
+use App\Repositories\BaseEloquentRepository;
 
-    class EloquentRefundRepository implements RefundRepositoryInterface{
-        public function findById($id)
+    class EloquentRefundRepository extends BaseEloquentRepository implements RefundRepositoryInterface{
+        public function __construct()
         {
-            return Refund::find($id); 
+            $this->model = new Refund();
         }
 
         public function search(?array $filters, int $perPage = 10)
@@ -28,28 +29,4 @@ use App\Models\Refund;
 
             return $query->orderBy('created_at', 'desc')->paginate($perPage);
         }
-
-        public function getAll()
-        {
-            return Refund::all();
-        }
-        
-        public function create($data)
-        {
-            return Refund::create($data);
-        }
-
-        public function update($id, $data)
-        {
-            $refund = $this->findById($id);
-            $refund->update($data);
-            return $refund;
-        }
-
-        public function delete($id)
-        {
-            $refund = $this->findById($id);
-            return $refund->delete();
-        }
-
     }

@@ -1,11 +1,12 @@
 <?php
 namespace App\Repositories\Employee;
 use App\Models\Employee;
+use App\Repositories\BaseEloquentRepository;
 
-    class EloquentEmployeeRepository implements EmployeeRepositoryInterface{
-        public function findById($id)
+    class EloquentEmployeeRepository extends BaseEloquentRepository implements EmployeeRepositoryInterface{
+        public function __construct()
         {
-            return Employee::find($id); 
+            $this->model = new Employee();
         }
 
         public function search(string $keyword)
@@ -15,29 +16,4 @@ use App\Models\Employee;
                     ->orWhere('email', 'like', '%' . $keyword . '%');
             })->with('user')->get();
         }
-
-        public function getAll()
-        {
-            return Employee::all();
-        }
-        
-        public function create($data)
-        {
-            return Employee::create($data);
-        }
-
-        public function update($id, $data)
-        {
-            $employee = $this->findById($id);
-
-            $employee->update($data);
-            return $employee;
-        }
-
-        public function delete($id)
-        {
-            $employee = $this->findById($id);
-            return $employee->delete();
-        }
-
     }

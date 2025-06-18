@@ -109,9 +109,10 @@ class PaymentService
             if ($paymentPurpose === PaymentPurpose::EXTENDED_HOURS) {
                 $bookingExtension = $this->bookingExtensionService
                     ->getLatestByBookingId($booking_id);
+                $originalCheckout = $booking->check_out;
 
                 $this->bookingService->handleSaveBookingAfterExtend($booking_id, $bookingExtension);
-                $this->roomStatusHistoryService->handleBookingExtensions($bookingExtension);
+                $this->roomStatusHistoryService->handleBookingExtensions($bookingExtension, $originalCheckout);
             }
 
             $oldPaid = $booking->paid_amount ?? 0;

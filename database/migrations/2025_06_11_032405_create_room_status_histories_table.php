@@ -6,15 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('room_status_histories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('room_id')->constrained()->onDelete('cascade');
-            $table->enum('status', ['BUSY', 'CLEANING', 'MAINTENANCE'])->default('BUSY');
+            $table->enum('status', ['BOOKED', 'EXTENDED', 'CLEANING', 'MAINTENANCE'])->default('BOOKED');
             $table->dateTime('started_at');
             $table->dateTime('ended_at');
             $table->foreignId('booking_id')->constrained()->onDelete('cascade');

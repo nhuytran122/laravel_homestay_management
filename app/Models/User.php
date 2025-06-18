@@ -9,11 +9,12 @@ use Illuminate\Notifications\Notifiable;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements JWTSubject, HasMedia
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, InteractsWithMedia;
+    use HasFactory, Notifiable, InteractsWithMedia, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -24,7 +25,6 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         'full_name',
         'email',
         'password',
-        'role_id',
         'phone',
         'address',
         'is_enabled'
@@ -64,9 +64,9 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         return [];
     }
 
-    public function role(){
-        return $this->belongsTo(Role::class);
-    }
+    // public function role(){
+    //     return $this->belongsTo(Role::class);
+    // }
     public function customer(){
         return $this->hasOne(Customer::class);
     }

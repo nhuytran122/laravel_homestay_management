@@ -1,13 +1,13 @@
 <?php
 namespace App\Repositories\CustomerType;
 use App\Models\CustomerType;
+use App\Repositories\BaseEloquentRepository;
 
-    class EloquentCustomerTypeRepository implements CustomerTypeRepositoryInterface{
-        public function findById($id)
+    class EloquentCustomerTypeRepository extends BaseEloquentRepository implements CustomerTypeRepositoryInterface{
+        public function __construct()
         {
-            return CustomerType::find($id); 
+            $this->model = new CustomerType();
         }
-
         public function searchByName(string $keyword)
         {
             return CustomerType::where('name', 'like', '%' . $keyword . '%')->get();
@@ -17,29 +17,6 @@ use App\Models\CustomerType;
         {
             $customerType = CustomerType::orderBy('min_point', 'asc')->first();
             return $customerType;
-        }
-
-        public function getAll()
-        {
-            return CustomerType::all();
-        }
-        
-        public function create($data)
-        {
-            return CustomerType::create($data);
-        }
-
-        public function update($id, $data)
-        {
-            $customer_type = $this->findById($id);
-            $customer_type->update($data);
-            return $customer_type;
-        }
-
-        public function delete($id)
-        {
-            $customer_type = $this->findById($id);
-            return $customer_type->delete();
         }
 
     }

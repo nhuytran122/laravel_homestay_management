@@ -59,10 +59,10 @@ class RoomStatusHistoryService
     public function handleStatusWhenBooking(Booking $booking): void
     {
         DB::transaction(function () use ($booking){
-            // 1. Trạng thái BUSY trong thời gian ở
+            // 1. Trạng thái BOOKED trong thời gian ở
             $this->create([
                 'room_id' => $booking->room_id,
-                'status' => RoomStatus::BUSY,
+                'status' => RoomStatus::BOOKED,
                 'started_at' => $booking->check_in,
                 'ended_at' => $booking->check_out,
                 'booking_id' => $booking->id,
@@ -82,24 +82,67 @@ class RoomStatusHistoryService
         });
     }
 
-    public function handleBookingExtensions(BookingExtension $bookingExtension)
-    {
-        $booking = $bookingExtension->booking; 
-        $cleaningHours = Config::get('custom.cleaning_hours');
-        $newCheckout = Carbon::parse($booking->check_out);
-        $busyStatus = $this->getScheduleByBookingIdAndStatus($booking->id, RoomStatus::BUSY);
+    // public function handleBookingExtensions(BookingExtension $bookingExtension)
+    // {
+    //     $booking = $bookingExtension->booking; 
+    //     $cleaningHours = Config::get('custom.cleaning_hours');
+    //     $newCheckout = Carbon::parse($booking->check_out);
+    //     $busyStatus = $this->getScheduleByBookingIdAndStatus($booking->id, RoomStatus::BOOKED);
         
-        $busyStatus->ended_at = $newCheckout;
-        $busyStatus->save();
+    //     $busyStatus->ended_at = $newCheckout;
+    //     $busyStatus->save();
 
-        $cleanStatus = $this->getScheduleByBookingIdAndStatus($booking->id, RoomStatus::CLEANING);
-        $cleanStatus->started_at = $newCheckout;
-        $cleanStatus->ended_at = $newCheckout->copy()->addHours($cleaningHours);
-        $cleanStatus->save();
+    //     $cleanStatus = $this->getScheduleByBookingIdAndStatus($booking->id, RoomStatus::CLEANING);
+    //     $cleanStatus->started_at = $newCheckout;
+    //     $cleanStatus->ended_at = $newCheckout->copy()->addHours($cleaningHours);
+    //     $cleanStatus->save();
+    // }
+
+    public function handleBookingExtensions(BookingExtension $bookingExtension, Carbon $originalCheckout)
+    {
+        DB::transaction(function () use ($bookingExtension, $originalCheckout){
+            $booking = $bookingExtension->booking; 
+            $newCheckout = Carbon::parse($booking->check_out);
+            $roomId = $booking->room_id;
+            $cleaningHours = Config::get('custom.cleaning_hours');
+            $this->create([
+                    'room_id' => $roomId,
+                    'booking_id' => $booking->id,
+                    'status' => RoomStatus::EXTENDED,
+                    'started_at' => $originalCheckout,
+                    'ended_at' => $newCheckout
+            ]);
+            $cleanStatus = $this->getScheduleByBookingIdAndStatus($booking->id, RoomStatus::CLEANING);
+            $cleanStatus->started_at = $newCheckout;
+            $cleanStatus->ended_at = $newCheckout->copy()->addHours($cleaningHours);
+            $cleanStatus->save();
+        });
     }
 
     public function deleteByBookingId($bookingId){
         return $this->repo->deleteByBookingId($bookingId);
+    }
+
+    public function isOverlappingRoomWithExtension(
+            Booking $booking,
+            ?float $extendHours = null
+    ): bool {
+            $CLEANING_HOURS = Config::get('custom.cleaning_hours');
+            $roomId = $booking->room_id;
+            $currentCheckOut = $booking->check_out;
+
+            if ($extendHours !== null) {
+                $newCheckOut = $currentCheckOut->copy()->addHours($extendHours);
+            }
+
+            if (!$newCheckOut) {
+                return false; 
+            }
+
+            $checkOutWithBuffer = $currentCheckOut->copy()->addHours($CLEANING_HOURS);
+            $newCheckOutWithBuffer = $newCheckOut->copy()->addHours($CLEANING_HOURS);
+
+            return $this->existsOverlappingStatuses($roomId, $checkOutWithBuffer, $newCheckOutWithBuffer, $booking->id);
     }
 
 }

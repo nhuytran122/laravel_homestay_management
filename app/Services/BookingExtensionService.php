@@ -3,9 +3,12 @@
 namespace App\Services;
 
 use App\Helpers\DiscountHelper;
+use App\Models\Booking;
 use App\Models\BookingExtension;
 use App\Repositories\BookingExtension\BookingExtensionRepositoryInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 
 class BookingExtensionService
@@ -46,7 +49,7 @@ class BookingExtensionService
 
     public function findByBookingId(int $bookingId)
     {
-        return $this->findByBookingId($bookingId);
+        return $this->repo->findByBookingId($bookingId);
     }
 
     public function deleteLatestExtensionByBookingId(int $bookingId): void
@@ -100,4 +103,7 @@ class BookingExtensionService
         return $this->repo->getLatestByBookingId($bookingId);
     }
 
+    public function hasUnpaidExtensionByBookingId(int $bookingId){
+        return $this->repo->hasUnpaidExtensionByBookingId($bookingId);
+    }
 }

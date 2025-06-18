@@ -2,11 +2,9 @@
 namespace App\Repositories\BookingService;
 
 use App\Enums\BookingServiceStatus;
+use App\Repositories\BaseRepositoryInterface;
 
-interface BookingServiceRepositoryInterface{
-    public function findById($id);
-    public function getAll();
-    public function delete($id);
+interface BookingServiceRepositoryInterface extends BaseRepositoryInterface{
     public function findByBookingId($bookingId);
     public function bulkUpdateServiceStatusByBookingId(int $bookingId, BookingServiceStatus $status);
     public function findBookingServicesWithoutPaymentDetailByBookingId($bookingId);

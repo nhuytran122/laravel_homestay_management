@@ -1,21 +1,12 @@
 <?php
 namespace App\Repositories\BookingPricingSnapshot;
 use App\Models\BookingPricingSnapshot;
+use App\Repositories\BaseEloquentRepository;
 use App\Repositories\BookingPricingSnapshot\BookingPricingSnapshotRepositoryInterface;
 
-    class EloquentBookingPricingSnapshotRepository implements BookingPricingSnapshotRepositoryInterface{
-        public function findById($id)
+    class EloquentBookingPricingSnapshotRepository extends BaseEloquentRepository implements BookingPricingSnapshotRepositoryInterface{
+        public function __construct()
         {
-            return BookingPricingSnapshot::find($id); 
-        }
-
-        public function getAll()
-        {
-            return BookingPricingSnapshot::all();
-        }
-        
-        public function create($data)
-        {
-            return BookingPricingSnapshot::create($data);
+            $this->model = new BookingPricingSnapshot();
         }
     }

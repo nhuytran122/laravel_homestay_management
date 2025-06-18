@@ -3,37 +3,15 @@ namespace App\Repositories\RoomStatusHistory;
 
 use App\Enums\RoomStatus;
 use App\Models\RoomStatusHistory;
+use App\Repositories\BaseEloquentRepository;
 use App\Repositories\RoomStatusHistory\RoomStatusHistoryRepositoryInterface;
 
-    class EloquentRoomStatusHistoryRepository implements RoomStatusHistoryRepositoryInterface{
-        public function findById($id)
+    class EloquentRoomStatusHistoryRepository extends BaseEloquentRepository implements RoomStatusHistoryRepositoryInterface{
+        public function __construct()
         {
-            return RoomStatusHistory::find($id); 
-        }
-
-        public function getAll()
-        {
-            return RoomStatusHistory::all();
+            $this->model = new RoomStatusHistory();
         }
         
-        public function create($data)
-        {
-            return RoomStatusHistory::create($data);
-        }
-
-        public function update($id, $data)
-        {
-            $room_pricing = $this->findById($id);
-            $room_pricing->update($data);
-            return $room_pricing;
-        }
-
-        public function delete($id)
-        {
-            $room_pricing = $this->findById($id);
-            return $room_pricing->delete();
-        }
-
         public function existsOverlappingStatuses($roomId, $checkIn, $checkOut)
         {
             return RoomStatusHistory::where('room_id', $roomId)

@@ -1,13 +1,15 @@
 <?php
 namespace App\Repositories\Customer;
 use App\Models\Customer;
+use App\Repositories\BaseEloquentRepository;
 
-    class EloquentCustomerRepository implements CustomerRepositoryInterface{
-        public function findById($id)
+    class EloquentCustomerRepository extends BaseEloquentRepository implements CustomerRepositoryInterface{
+
+        public function __construct()
         {
-            return Customer::find($id); 
+            $this->model = new Customer();
         }
-
+        
         public function search(string $keyword)
         {
             return Customer::whereHas('user', function ($query) use ($keyword) {
@@ -15,29 +17,4 @@ use App\Models\Customer;
                     ->orWhere('email', 'like', '%' . $keyword . '%');
             })->with('user')->get();
         }
-
-        public function getAll()
-        {
-            return Customer::all();
-        }
-        
-        public function create($data)
-        {
-            return Customer::create($data);
-        }
-
-        public function update($id, $data)
-        {
-            $customer = $this->findById($id);
-
-            $customer->update($data);
-            return $customer;
-        }
-
-        public function delete($id)
-        {
-            $customer = $this->findById($id);
-            return $customer->delete();
-        }
-
     }

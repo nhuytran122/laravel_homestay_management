@@ -54,8 +54,9 @@ Route::middleware(['auth:api'])->group(function(){
             Route::get('/{booking}/booking-extensions/can-book', [BookingExtensionController::class, 'checkCanBookingExtension']);
             Route::post('/{booking}/booking-extensions', [BookingExtensionController::class, 'create'])
                 ->can('additionalBook', 'booking');
+            Route::get('/{booking}/booking-extensions/{bookingExtension}/can-pay', [BookingExtensionController::class, 'canPay']);
 
-            Route::get('/checkout/{booking}', [PaymentController::class, 'handlePay'])
+            Route::get('/{booking}/checkout', [PaymentController::class, 'handlePay'])
                 ->name('checkout');
 
         });
@@ -64,16 +65,18 @@ Route::middleware(['auth:api'])->group(function(){
 
 Route::get('/checkout/vn-pay-callback', [PaymentController::class, 'handleVnPayCallback']);
 
-Route::prefix('admin')->group(function () {
-    Route::resource('customer-types', CustomerTypeController::class);
-    Route::resource('employees', EmployeeController::class);
-    Route::resource('customers', CustomerController::class);
-    Route::resource('branches', BranchController::class);
-    Route::resource('room-types', RoomTypeController::class);
-    Route::resource('rooms', RoomController::class);
-    Route::resource('services', ServiceController::class);
-    Route::resource('room-pricings', RoomPricingController::class);
-});
+// Route::middleware(['isAdmin'])->group(function () {
+    Route::prefix('admin')->group(function () {
+        Route::resource('customer-types', CustomerTypeController::class);
+        Route::resource('employees', EmployeeController::class);
+        Route::resource('customers', CustomerController::class);
+        Route::resource('branches', BranchController::class);
+        Route::resource('room-types', RoomTypeController::class);
+        Route::resource('rooms', RoomController::class);
+        Route::resource('services', ServiceController::class);
+        Route::resource('room-pricings', RoomPricingController::class);
+    });
+// });
 
 Route::get('/services/by-type', [ExtraServiceController::class, 'getServicesByType']);
 Route::get('/services', [ExtraServiceController::class, 'getAll']);

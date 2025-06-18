@@ -11,7 +11,7 @@ class BookingPolicy
 {
     public function viewAny(User $user): bool
     {
-        return in_array($user->role->role_name, [RoleSystem::MANAGER, RoleSystem::STAFF]);
+        return $user->hasAnyRole([RoleSystem::MANAGER->value, RoleSystem::STAFF->value]);
     }
 
     private function isOwner(User $user, Booking $booking): bool

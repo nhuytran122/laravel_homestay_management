@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('booking_id')->constrained()->onDelete('cascade');
             $table->float('extended_hours')->check('extended_hours > 0');
+            $table->enum('status', ['PENDING', 'CONFIRMED', 'EXPIRED', 'CANCELLED'])->default('PENDING');
             $table->timestamps();
         });
     }

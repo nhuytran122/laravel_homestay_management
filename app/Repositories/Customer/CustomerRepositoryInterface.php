@@ -1,11 +1,8 @@
 <?php
 namespace App\Repositories\Customer;
 
-interface CustomerRepositoryInterface{
-    public function create(array $customer);
-    public function findById($id);
+use App\Repositories\BaseRepositoryInterface;
+
+interface CustomerRepositoryInterface extends BaseRepositoryInterface{
     public function search(string $keyword);
-    public function getAll();
-    public function update($id, array $data);
-    public function delete($id);
 }

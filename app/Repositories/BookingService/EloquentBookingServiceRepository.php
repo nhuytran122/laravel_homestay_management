@@ -3,23 +3,14 @@ namespace App\Repositories\BookingService;
 
 use App\Enums\BookingServiceStatus;
 use App\Models\BookingService;
+use App\Repositories\BaseEloquentRepository;
 use App\Repositories\BookingService\BookingServiceRepositoryInterface;
 
-    class EloquentBookingServiceRepository implements BookingServiceRepositoryInterface{
-        public function findById($id)
+    class EloquentBookingServiceRepository extends BaseEloquentRepository implements BookingServiceRepositoryInterface{
+        
+        public function __construct()
         {
-            return BookingService::find($id); 
-        }
-
-        public function getAll()
-        {
-            return BookingService::all();
-        }
-    
-        public function delete($id)
-        {
-            $booking = $this->findById($id);
-            return $booking->delete();
+            $this->model = new BookingService();
         }
 
         public function findByBookingId($bookingId)
@@ -51,7 +42,6 @@ use App\Repositories\BookingService\BookingServiceRepositoryInterface;
                 })
                 ->get();
         }
-
 
         public function hasPostpaidService(int $bookingId): bool
         {

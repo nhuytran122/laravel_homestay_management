@@ -1,11 +1,8 @@
 <?php
 namespace App\Repositories\User;
 use App\Models\User;
+use App\Repositories\BaseRepositoryInterface;
 
-interface UserRepositoryInterface{
+interface UserRepositoryInterface extends BaseRepositoryInterface{
     public function findByEmail($email);
-    public function create(array $customer_type);
-    public function findById($id);
-    public function update($id, array $data);
-    public function delete($id);
 }

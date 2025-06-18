@@ -1,27 +1,27 @@
 <?php
 namespace App\Services;
 
+use App\Enums\RoleSystem;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
 use App\Repositories\User\UserRepositoryInterface;
-use App\Services\RoleService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
     class UserService{
         private $repo;
-        private $roleService;
 
-        public function __construct(UserRepositoryInterface $repo, RoleService $roleService){
+        public function __construct(UserRepositoryInterface $repo){
             $this->repo = $repo;
-            $this->roleService = $roleService;
         }
         
-        public function create($data){
+        public function create($data)
+        {
             $defaultPassword = Config::get('custom.default_password');
-
             $data['password'] = Hash::make($data['password'] ?? $defaultPassword);
-            $data['role_id'] = $data['role_id'] ?? $this->roleService->getCustomerRoleId();
-            return $this->repo->create($data);
+            $user = $this->repo->create($data);
+            $roleName = $data['role_id'] ?? RoleSystem::CUSTOMER->value;
+            $user->assignRole($roleName);
+            return $user;
         }
 
         public function update($id, $data){

@@ -10,8 +10,10 @@ class Booking extends Model
     protected $fillable = ['customer_id', 'room_id', 'check_in', 'check_out',
         'guest_count', 'status', 'total_amount', 'paid_amount', 'has_send_reminder'];
 
-        protected $casts = [
+    protected $casts = [
         'status' => BookingStatus::class,
+        'check_in' => 'datetime',
+        'check_out' => 'datetime'
     ];
     public function customer(){
         return $this->belongsTo(Customer::class);

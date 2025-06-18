@@ -1,13 +1,14 @@
 <?php
 namespace App\Repositories\Branch;
 use App\Models\Branch;
+use App\Repositories\BaseEloquentRepository;
 
-    class EloquentBranchRepository implements BranchRepositoryInterface{
-        public function findById($id)
+    class EloquentBranchRepository extends BaseEloquentRepository implements BranchRepositoryInterface{
+
+        public function __construct()
         {
-            return Branch::find($id); 
+            $this->model = new Branch();
         }
-
         public function search(string $keyword)
         {
             return Branch::where('name', 'like', '%' . $keyword . '%')
@@ -15,28 +16,4 @@ use App\Models\Branch;
                 ->orWhere('phone', 'like', '%' . $keyword . '%')
                 ->get();
         }
-
-        public function getAll()
-        {
-            return Branch::all();
-        }
-        
-        public function create($data)
-        {
-            return Branch::create($data);
-        }
-
-        public function update($id, $data)
-        {
-            $branch = $this->findById($id);
-            $branch->update($data);
-            return $branch;
-        }
-
-        public function delete($id)
-        {
-            $branch = $this->findById($id);
-            return $branch->delete();
-        }
-
     }

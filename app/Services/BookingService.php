@@ -99,7 +99,7 @@ class BookingService
     public function handleSaveBookingAfterExtend(int $bookingId, BookingExtension $bookingExtension)
     {
         $currentBooking = $this->getById($bookingId);
-        $oldCheckout = $bookingExtension->booking->check_out;
+        $oldCheckout = $currentBooking->check_out;
         $extendedHours = $bookingExtension->extended_hours;
         $extraMinutes = round($extendedHours * 60);
 

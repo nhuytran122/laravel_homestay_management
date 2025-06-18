@@ -1,12 +1,9 @@
 <?php
 namespace App\Repositories\Service;
 
-interface ServiceRepositoryInterface{
-    public function create(array $data);
-    public function findById($id);
+use App\Repositories\BaseRepositoryInterface;
+
+interface ServiceRepositoryInterface extends BaseRepositoryInterface{
     public function search(string $keyword);
-    public function getAll();
-    public function update($id, array $data);
-    public function delete($id);
     public function findByIsPrepaid(bool $isPrepaid);
 }

@@ -1,12 +1,9 @@
 <?php
 namespace App\Repositories\Booking;
 
-interface BookingRepositoryInterface{
-    public function create(array $data);
-    public function findById($id);
-    public function getAll();
-    public function update($id, array $data);
-    public function delete($id);
+use App\Repositories\BaseRepositoryInterface;
+
+interface BookingRepositoryInterface extends BaseRepositoryInterface{
     public function getListBookingsByCustomerID($id);
     public function searchBookingsByCustomer(int $customerId, ?array $filters, int $perPage = 10);
 }

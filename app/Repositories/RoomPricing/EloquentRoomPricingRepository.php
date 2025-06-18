@@ -1,35 +1,13 @@
 <?php
 namespace App\Repositories\RoomPricing;
 use App\Models\RoomPricing;
+use App\Repositories\BaseEloquentRepository;
 use App\Repositories\RoomPricing\RoomPricingRepositoryInterface;
 
-    class EloquentRoomPricingRepository implements RoomPricingRepositoryInterface{
-        public function findById($id)
+    class EloquentRoomPricingRepository extends BaseEloquentRepository implements RoomPricingRepositoryInterface{
+        public function __construct()
         {
-            return RoomPricing::find($id); 
-        }
-
-        public function getAll()
-        {
-            return RoomPricing::all();
-        }
-        
-        public function create($data)
-        {
-            return RoomPricing::create($data);
-        }
-
-        public function update($id, $data)
-        {
-            $room_pricing = $this->findById($id);
-            $room_pricing->update($data);
-            return $room_pricing;
-        }
-
-        public function delete($id)
-        {
-            $room_pricing = $this->findById($id);
-            return $room_pricing->delete();
+            $this->model = new RoomPricing();
         }
 
         public function getDefaultPricingByRoomTypeId(int $roomTypeId)
@@ -79,5 +57,4 @@ use App\Repositories\RoomPricing\RoomPricingRepositoryInterface;
                 ->where('is_default', true)
                 ->first();
         }
-
     }

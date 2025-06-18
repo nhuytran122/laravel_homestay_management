@@ -18,7 +18,17 @@ class BookingExtensionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'new_check_out' => 'required|date_format:Y-m-d H:i:s|after:date:now',
+            'new_check_out' => [
+                'required',
+                'date_format:Y-m-d H:i:s',
+                'after:now',
+                function ($attribute, $value, $fail) {
+                    $booking = $this->route('booking');
+                    if ($booking && Carbon::parse($value)->lte($booking->check_out)) {
+                        $fail('Thời gian gia hạn phải sau thời gian checkout hiện tại.');
+                    }
+                }
+            ],
             'extended_hours'  => 'nullable|numeric|min:0.5' // để validated() trả ra
         ];
     }
@@ -31,19 +41,19 @@ class BookingExtensionRequest extends FormRequest
                 $formattedCheckout = $newCheckout->format('Y-m-d H:i:s');
 
                 $booking = $this->route('booking');
-                $hoursDelay = null;
+                $extendedHours = null;
 
                 if ($booking) {
-                    $currentCheckOut = Carbon::parse($booking->check_out);
+                    $currentCheckOut = $booking->check_out;
                     $newCheckOutCarbon = Carbon::parse($formattedCheckout);
 
                     $minutesDelay = $currentCheckOut->diffInMinutes($newCheckOutCarbon, false);
-                    $hoursDelay = ceil($minutesDelay / 30.0) * 0.5;
+                    $extendedHours = ceil($minutesDelay / 30.0) * 0.5;
                 }
 
                 $this->merge([
                     'new_check_out' => $formattedCheckout,
-                    'extended_hours' => $hoursDelay
+                    'extended_hours' => $extendedHours
                 ]);
             } catch (\Exception $e) {
             }
@@ -54,39 +64,16 @@ class BookingExtensionRequest extends FormRequest
     {
         $validator->after(function ($v) {
             $booking = $this->route('booking');
-            $bookingId = $booking->id;
-            $newCheckOut = $this->input('new_check_out');
-
-            $hoursDelay = null;
-
-            if (!$bookingId || !$newCheckOut) {
-                return;
-            }
-            $currentCheckOut = Carbon::parse($booking->check_out);
-            $newCheckOutCarbon = Carbon::parse($newCheckOut);
-
-            $CLEANING_HOURS = Config::get('custom.cleaning_hours'); 
-
-            $checkOutWithBuffer = $currentCheckOut->copy()->addHours($CLEANING_HOURS);
-            $newCheckOutWithBuffer = $newCheckOutCarbon->copy()->addHours($CLEANING_HOURS);
+            $extendedHours = $this->input('extended_hours');
 
             $isOverlapping = app(RoomStatusHistoryService::class)
-                ->existsOverlappingStatuses(
-                    $booking->room_id,
-                    $checkOutWithBuffer,
-                    $newCheckOutWithBuffer
+                ->isOverlappingRoomWithExtension(
+                    $booking, $extendedHours
                 );
 
             if ($isOverlapping) {
                 $v->errors()->add('new_check_out', 'Thời gian bạn chọn đã có lịch phòng khác. Vui lòng chọn thời gian khác.');
                 return;
-            }
-
-            $minutesDelay = $currentCheckOut->diffInMinutes($newCheckOutCarbon, false);
-            $hoursDelay = ceil($minutesDelay / 30.0) * 0.5;
-
-            if ($hoursDelay <= 0) {
-                $v->errors()->add('new_check_out', 'Thời gian gia hạn phải sau thời gian checkout hiện tại.');
             }
         });
     }
