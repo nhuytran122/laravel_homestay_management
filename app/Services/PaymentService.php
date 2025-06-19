@@ -62,8 +62,7 @@ class PaymentService
                 break;
 
             case PaymentPurpose::EXTENDED_HOURS:
-                $extension = $this->bookingExtensionService->getLatestByBookingId($bookingId);
-                $amount = intval($this->bookingExtensionService->calculateFinalExtensionAmount($extension) * 100);
+                $amount = intval($booking->total_amount * 100);
                 break;
 
             case PaymentPurpose::ADDITIONAL_SERVICE:
@@ -99,20 +98,14 @@ class PaymentService
         return DB::transaction(function () use ($payment, $paymentPurpose) {
             $payment->save();
             $booking = $payment->booking;
-            $booking_id = $booking->id;
 
             if ($paymentPurpose === PaymentPurpose::ROOM_BOOKING) {
-                $booking->status = BookingStatus::CONFIRMED;
-                $booking->save();
+                $this->bookingService->updateStatus($booking, BookingStatus::CONFIRMED);
             }
 
             if ($paymentPurpose === PaymentPurpose::EXTENDED_HOURS) {
-                $bookingExtension = $this->bookingExtensionService
-                    ->getLatestByBookingId($booking_id);
-                $originalCheckout = $booking->check_out;
-
-                $this->bookingService->handleSaveBookingAfterExtend($booking_id, $bookingExtension);
-                $this->roomStatusHistoryService->handleBookingExtensions($bookingExtension, $originalCheckout);
+                $this->bookingService->updateStatus($booking, BookingStatus::CONFIRMED);
+                $this->roomStatusHistoryService->handleStatusWhenBookingExtend($booking);
             }
 
             $oldPaid = $booking->paid_amount ?? 0;

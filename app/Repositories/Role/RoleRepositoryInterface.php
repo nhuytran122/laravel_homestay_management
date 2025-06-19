@@ -1,6 +1,7 @@
 <?php
 namespace App\Repositories\Role;
 
-interface RoleRepositoryInterface{
-    public function getCustomerRoleId();
+use App\Repositories\BaseRepositoryInterface;
+
+interface RoleRepositoryInterface extends BaseRepositoryInterface{
 }

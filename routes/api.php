@@ -53,7 +53,7 @@ Route::middleware(['auth:api'])->group(function(){
 
             Route::get('/{booking}/booking-extensions/can-book', [BookingExtensionController::class, 'checkCanBookingExtension']);
             Route::post('/{booking}/booking-extensions', [BookingExtensionController::class, 'create'])
-                ->can('additionalBook', 'booking');
+                ->can('bookAndPayAdditionalBooking', 'booking');
             Route::get('/{booking}/booking-extensions/{bookingExtension}/can-pay', [BookingExtensionController::class, 'canPay']);
 
             Route::get('/{booking}/checkout', [PaymentController::class, 'handlePay'])

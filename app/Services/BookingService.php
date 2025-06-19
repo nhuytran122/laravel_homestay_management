@@ -24,7 +24,6 @@ class BookingService
     private RoomPricingService $roomPricingService;
     private BookingPricingSnapshotService $bookingPricingSnapshotService;
     private RoomStatusHistoryService $roomStatusHistoryService;
-    private BookingExtensionService $bookingExtensionService;
     private RefundService $refundService;
     private PaymentRepositoryInterface $paymentRepository;
     private BookingServiceRepositoryInterface $bookingServiceRepository;
@@ -32,7 +31,7 @@ class BookingService
     public function __construct(BookingRepositoryInterface $repo, RoomPricingService $roomPricingService,
         BookingPricingSnapshotService $bookingPricingSnapshotService, RoomStatusHistoryService $roomStatusHistoryService,
         RefundService $refundService, PaymentRepositoryInterface $paymentRepository,
-        BookingServiceRepositoryInterface $bookingServiceRepository, BookingExtensionService $bookingExtensionService)
+        BookingServiceRepositoryInterface $bookingServiceRepository)
     {
         $this->repo = $repo;
         $this->roomPricingService = $roomPricingService;
@@ -41,7 +40,6 @@ class BookingService
         $this->refundService = $refundService;
         $this->paymentRepository = $paymentRepository;
         $this->bookingServiceRepository = $bookingServiceRepository;
-        $this->bookingExtensionService = $bookingExtensionService;
     }
 
     public function getAll()
@@ -96,29 +94,36 @@ class BookingService
         
     }
 
-    public function handleSaveBookingAfterExtend(int $bookingId, BookingExtension $bookingExtension)
+    public function handleCreateBookingExtend(array $data): Booking
     {
-        $currentBooking = $this->getById($bookingId);
-        $oldCheckout = $currentBooking->check_out;
-        $extendedHours = $bookingExtension->extended_hours;
-        $extraMinutes = round($extendedHours * 60);
+        return DB::transaction(function () use ($data){
+            $new_booking_extension = $this->repo->create($data);
 
-        $newCheckout = Carbon::parse($oldCheckout)->addMinutes($extraMinutes);
-        $currentBooking->check_out = $newCheckout;
+            $room_type_id = $new_booking_extension->room->room_type->id;
+            $checkIn = $new_booking_extension->check_in;
+            $checkOut = $new_booking_extension->check_out;
 
-        $discountedPrice = $this->bookingExtensionService->calculateFinalExtensionAmount($bookingExtension);
-        $currentBooking->total_amount += $discountedPrice;
+            $pricing = $this->roomPricingService->getApplicablePricingForRange(
+                $room_type_id, $checkIn, $checkOut)
+            ?? $this->roomPricingService->getDefaultPricingByRoomTypeId($room_type_id);
 
-        $currentBooking->save();
+            $extra_hour_price = $pricing->extra_hour_price;
+            $new_booking_extension->total_amount = $new_booking_extension->getDurationInFloatHours() * $extra_hour_price;
+            $new_booking_extension->save();
+
+            $this->bookingPricingSnapshotService->create($pricing, $new_booking_extension->id);
+
+            return $new_booking_extension;
+        });
+        
     }
 
     public function calculateTotalAmountBookingRoom(Booking $booking): float
     {
         $raw = $this->calculateRawTotalAmountBookingRoom($booking);
         $customer = $booking->customer;
-        $discount = DiscountHelper::calculateDiscountAmount($raw, $customer);
 
-        return $raw - $discount;
+        return DiscountHelper::calculateFinalPrice($raw, $customer);
     }
 
     public function calculateRawTotalAmountBookingRoom(Booking $booking): float
@@ -304,6 +309,5 @@ class BookingService
             return $booking;
         });
     }
-
 
 }

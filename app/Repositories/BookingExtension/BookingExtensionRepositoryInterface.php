@@ -1,7 +1,9 @@
 <?php
 namespace App\Repositories\BookingExtension;
 
-interface BookingExtensionRepositoryInterface{
+use App\Repositories\BaseRepositoryInterface;
+
+interface BookingExtensionRepositoryInterface extends BaseRepositoryInterface{
     public function findByBookingId($bookingId);
     public function getLatestByBookingId(int $bookingId);
     public function getUnpaidBookingExtensions();

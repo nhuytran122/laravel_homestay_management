@@ -62,8 +62,7 @@ class PaymentDetailService
             foreach ($services as $bService) {
                 if ($bService->service->is_prepaid) {
                     $raw = $bService->service->price * $bService->quantity;
-                    $discount = DiscountHelper::calculateDiscountAmount($raw, $booking->customer);
-                    $final = $raw - $discount;
+                    $final = DiscountHelper::calculateFinalPrice($raw, $booking->customer);
 
                     $this->create([
                         'payment_id' => $payment->id,
@@ -84,7 +83,7 @@ class PaymentDetailService
 
             foreach ($services as $bService) {
                 $raw = $bService->raw_total_amount;
-                $final = $raw - DiscountHelper::calculateDiscountAmount($raw, $payment->booking->customer);
+                $final = DiscountHelper::calculateFinalPrice($raw, $payment->booking->customer);
 
                 $this->create([
                     'payment_id' => $payment->id,
@@ -99,14 +98,13 @@ class PaymentDetailService
 
     private function handleExtendedHoursPayment(Payment $payment, int $bookingId): void
     {
-        $bookingExtension = $this->bookingExtensionService->getLatestByBookingId($bookingId);
-        $raw = $this->bookingExtensionService->calculateFinalExtensionAmount($bookingExtension);
-        $final = $raw - DiscountHelper::calculateDiscountAmount($raw, $bookingExtension->booking->customer);
+        $bookingExtension = $payment->booking;
+        $raw = $this->bookingService->calculateTotalAmountBookingRoom($bookingExtension);
+        $final = DiscountHelper::calculateFinalPrice($raw, $bookingExtension->customer);
 
         $this->create([
             'payment_id' => $payment->id,
             'payment_purpose' => PaymentPurpose::EXTENDED_HOURS,
-            'booking_extension_id' => $bookingExtension->id,
             'base_amount' => $raw,
             'final_amount' => $final,
         ]);

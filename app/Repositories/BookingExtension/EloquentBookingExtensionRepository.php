@@ -1,26 +1,25 @@
 <?php
 namespace App\Repositories\BookingExtension;
 
-use App\Enums\BookingExtensionStatus;
-use App\Models\BookingExtension;
+use App\Enums\BookingStatus;
+use App\Models\Booking;
 use App\Repositories\BaseEloquentRepository;
 use App\Repositories\BookingExtension\BookingExtensionRepositoryInterface;
 
     class EloquentBookingExtensionRepository extends BaseEloquentRepository implements BookingExtensionRepositoryInterface{
-        
         public function __construct()
         {
-            $this->model = new BookingExtension();
+            $this->model = new Booking();
         }
-
+        
         public function findByBookingId($bookingId)
         {
-            return BookingExtension::where('booking_id', $bookingId)->get();
+            return Booking::where('parent_id', $bookingId)->get();
         }
 
-        public function getLatestByBookingId(int $bookingId): BookingExtension
+        public function getLatestByBookingId(int $bookingId): Booking
         {
-            return BookingExtension::where('booking_id', $bookingId)
+            return Booking::where('parent_id', $bookingId)
                 ->orderByDesc('created_at')
                 ->firstOrFail();
         }
@@ -38,24 +37,24 @@ use App\Repositories\BookingExtension\BookingExtensionRepositoryInterface;
         public function expireUnpaidBookingExtensions(): int
         {
             return $this->baseUnpaidExtensionsQuery()
-                ->update(['status' => BookingExtensionStatus::EXPIRED]);
+                ->update(['status' => BookingStatus::EXPIRED]);
         }
 
         public function hasUnpaidExtensionByBookingId(int $bookingId): bool
         {
             return $this->baseUnpaidExtensionsQuery()
-                ->where('booking_id', $bookingId)
+                ->where('parent_id', $bookingId)
                 ->exists();
         }
 
         private function baseUnpaidExtensionsQuery()
         {
-            return BookingExtension::where('status', BookingExtensionStatus::PENDING)
-                ->whereNotIn('id', function ($query) {
-                    $query->select('extension_id')
-                        ->from('payment_details')
-                        ->whereNotNull('extension_id');
-                });
+            return Booking::whereNotNull('parent_id')
+                ->where('status', BookingStatus::PENDING_PAYMENT)
+                ->orWhere('status', BookingStatus::PENDING_CONFIRMATION);
+            // return  Booking::whereNotNull('parent_id')
+            //     ->where('status', BookingStatus::PENDING_PAYMENT)
+            //     ->doesntHave('payments');
         }
 
     }

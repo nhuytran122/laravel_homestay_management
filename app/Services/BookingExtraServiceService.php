@@ -52,8 +52,7 @@ class BookingExtraServiceService
             // Kiểm tra nếu là dịch vụ trả trước or có số lượng
             if ($bService->service->is_prepaid || $bService->quantity !== null) {
                 $rawAmount = $bService->getRawTotalAmount();
-                $discount = DiscountHelper::calculateDiscountAmount($rawAmount, $customer);
-                $finalAmount = $rawAmount - $discount;
+                $finalAmount = DiscountHelper::calculateFinalPrice($rawAmount, $customer);
 
                 // Cập nhật tổng tiền booking
                 $currentBooking->total_amount += $finalAmount;
@@ -92,8 +91,7 @@ class BookingExtraServiceService
 
                 $rawTotal = $bService->getRawTotalAmount();
 
-                $discountedAmount = DiscountHelper::calculateDiscountAmount($rawTotal, $customer);
-                $oldTotalPriceService = $rawTotal - $discountedAmount;
+                $oldTotalPriceService = DiscountHelper::calculateFinalPrice($rawTotal, $customer);
 
                 $booking->total_amount -= $oldTotalPriceService;
                 $booking->save();
@@ -132,8 +130,7 @@ class BookingExtraServiceService
                 $totalAmount += $bookingService->getRawTotalAmount();
             }
         }
-        $discountAmount = DiscountHelper::calculateDiscountAmount($totalAmount, $customer);
-        return $totalAmount - $discountAmount;
+        return DiscountHelper::calculateFinalPrice($totalAmount, $customer);
     }
 
     public function existsByBookingId(int $bookingId){

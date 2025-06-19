@@ -18,7 +18,7 @@ return new class extends Migration
             $table->dateTime('check_in');
             $table->dateTime('check_out');
             $table->integer('guest_count')->check('guest_count > 0');
-            $table->enum('status', ['PENDING_BOOKING_SERVICE', 'PENDING_CONFIRMATION', 'PENDING_PAYMENT', 'CONFIRMED', 'EXPIRED', 'CANCELLED','COMPLETED'])->default('PENDING_BOOKING_SERVICE');
+            $table->enum('status', ['PENDING_CONFIRMATION', 'PENDING_PAYMENT', 'CONFIRMED', 'EXPIRED', 'CANCELLED','COMPLETED'])->default('PENDING_CONFIRMATION');
             $table->decimal('total_amount', 10, 2)->default(0)->check('total_amount >= 0');
             $table->decimal('paid_amount', 10, 2)->default(0)->check('paid_amount >= 0');
             $table->boolean('has_send_reminder')->default(false);

@@ -46,7 +46,7 @@ class PaymentController extends Controller
                 $this->authorize('payRoom', $booking);
                 break;
             case PaymentPurpose::EXTENDED_HOURS:
-                $this->authorize('bookAndPayAdditionalBooking', $booking);
+                $this->authorize('payRoom', $booking);
                 break;
             case PaymentPurpose::ADDITIONAL_SERVICE:
                 $this->authorize('bookAndPayAdditionalBooking', $booking);
@@ -101,7 +101,7 @@ class PaymentController extends Controller
             $payment->total_amount = (float) $vnpAmountStr / 100;
 
             $this->paymentService->handleSavePaymentWhenCheckout($payment, $paymentPurpose);
-
+            $booking = $booking->refresh();
             return response()->json([
                 'booking' => $booking,
                 'message' => 'Xác nhận và thanh toán thành công',
@@ -109,12 +109,8 @@ class PaymentController extends Controller
                     'booking' => $booking,
                 ]),
             ], 201)->header('Location', route('booking.show', [
-                'booking' => $booking->refresh(),
-            ]));
-        }
-
-        if ($status === '24' && $paymentPurpose === PaymentPurpose::EXTENDED_HOURS) {
-            $this->bookingExtensionService->deleteLatestExtensionByBookingId($bookingId);
+                'booking' => $booking,
+                ]));
         }
         return response()->json([
             'message' => 'Giao dịch thất bại'

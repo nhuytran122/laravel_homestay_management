@@ -4,7 +4,6 @@ namespace App\Enums;
 
 enum BookingStatus: string
 {
-    case PENDING_BOOKING_SERVICE = 'PENDING_BOOKING_SERVICE';
     case PENDING_CONFIRMATION = 'PENDING_CONFIRMATION';
     case PENDING_PAYMENT = 'PENDING_PAYMENT';
     case CONFIRMED = 'CONFIRMED';
@@ -15,7 +14,6 @@ enum BookingStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::PENDING_BOOKING_SERVICE => 'Đang chờ đặt dịch vụ',
             self::PENDING_CONFIRMATION => "Đang chờ xác nhận",
             self::PENDING_PAYMENT => "Đang chờ thanh toán",
             self::CONFIRMED => 'Đã xác nhận',

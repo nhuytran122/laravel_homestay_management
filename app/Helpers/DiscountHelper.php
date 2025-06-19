@@ -6,14 +6,22 @@ use App\Models\Customer;
 
 class DiscountHelper
 {
-    public static function calculateDiscountAmount(float $originalPrice, Customer $customer): float
+    public static function calculateFinalPrice(float $originalPrice, Customer $customer): float
     {
         $customer_type = $customer->customer_type;
+
         if (!$customer || !$customer_type) {
-            return 0.0;
+            return $originalPrice;
         }
 
         $discountRate = $customer_type->discount_rate;
-        return ($discountRate > 0) ? $originalPrice * $discountRate / 100 : 0.0;
+
+        if ($discountRate > 0) {
+            return $originalPrice * (1 - $discountRate / 100);
+        }
+
+        return $originalPrice;
     }
+
+    
 }

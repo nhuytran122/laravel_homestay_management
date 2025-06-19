@@ -98,21 +98,24 @@ class RoomStatusHistoryService
     //     $cleanStatus->save();
     // }
 
-    public function handleBookingExtensions(BookingExtension $bookingExtension, Carbon $originalCheckout)
+    public function handleStatusWhenBookingExtend(Booking $bookingExtension)
     {
-        DB::transaction(function () use ($bookingExtension, $originalCheckout){
-            $booking = $bookingExtension->booking; 
-            $newCheckout = Carbon::parse($booking->check_out);
-            $roomId = $booking->room_id;
+        DB::transaction(function () use ($bookingExtension){
+            $parent_booking = $bookingExtension->parent; 
+            $originalCheckout = $parent_booking->check_out;
+
+            $newCheckout = $bookingExtension->check_out;
+            $roomId = $bookingExtension->room_id;
+            
             $cleaningHours = Config::get('custom.cleaning_hours');
             $this->create([
                     'room_id' => $roomId,
-                    'booking_id' => $booking->id,
+                    'booking_id' => $bookingExtension->id,
                     'status' => RoomStatus::EXTENDED,
                     'started_at' => $originalCheckout,
                     'ended_at' => $newCheckout
             ]);
-            $cleanStatus = $this->getScheduleByBookingIdAndStatus($booking->id, RoomStatus::CLEANING);
+            $cleanStatus = $this->getScheduleByBookingIdAndStatus($bookingExtension->parent_id, RoomStatus::CLEANING);
             $cleanStatus->started_at = $newCheckout;
             $cleanStatus->ended_at = $newCheckout->copy()->addHours($cleaningHours);
             $cleanStatus->save();
@@ -125,19 +128,11 @@ class RoomStatusHistoryService
 
     public function isOverlappingRoomWithExtension(
             Booking $booking,
-            ?float $extendHours = null
+            Carbon $newCheckOut
     ): bool {
             $CLEANING_HOURS = Config::get('custom.cleaning_hours');
             $roomId = $booking->room_id;
             $currentCheckOut = $booking->check_out;
-
-            if ($extendHours !== null) {
-                $newCheckOut = $currentCheckOut->copy()->addHours($extendHours);
-            }
-
-            if (!$newCheckOut) {
-                return false; 
-            }
 
             $checkOutWithBuffer = $currentCheckOut->copy()->addHours($CLEANING_HOURS);
             $newCheckOutWithBuffer = $newCheckOut->copy()->addHours($CLEANING_HOURS);

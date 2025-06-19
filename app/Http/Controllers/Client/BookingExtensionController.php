@@ -24,7 +24,7 @@ class BookingExtensionController extends Controller
     public function checkCanBookingExtension(Booking $booking){
         $status = $booking->status;
         $booking_id = $booking->id;
-        if($status === BookingStatus::PENDING_BOOKING_SERVICE || $status === BookingStatus::PENDING_CONFIRMATION ||
+        if($status === BookingStatus::PENDING_CONFIRMATION ||
             $status === BookingStatus::PENDING_PAYMENT){
                 return response()->json([
                     'message' => 'Vui lòng hoàn tất đặt phòng và thanh toán trước khi thực hiện yêu cầu này'
@@ -58,27 +58,35 @@ class BookingExtensionController extends Controller
         }
 
         $data = $request->validated();
-        $new_booking_extension = [
-            'booking_id' => $booking->id,
-            'extended_hours' => $data['extended_hours'],
-        ];
-        $created_data = $this->bookingExtensionService->create($new_booking_extension);
+        // $new_booking_extension = [
+        //     'room_id' => $booking->room_id,
+        //     'check_in' => $booking->check_out,
+        //     'check_out' => $data['new_checkout'],
+        //     'guest_count' => $booking->guest_count,
+        //     'customer_id' => $booking->customer_id,
+        //     'parent_id' => $booking->id,
+        // ];
+        // $created_data = $this->bookingExtensionService->create($new_booking_extension);
+
+        $created_data = $this->bookingExtensionService->create(
+            $request->toExtensionPayload()
+        );
         
         return response()->json([
             'booking_extension' => $created_data,
             'message' => 'Tạo gia hạn cư trú thành công, tiến hành thanh toán',
             'next_url' => route('checkout', [
-                'booking' => $booking,
+                'booking' => $created_data,
                 'paymentPurpose' => PaymentPurpose::EXTENDED_HOURS,
             ]),
         ], 201)->header('Location', route('checkout', [
-            'booking' => $booking,
+            'booking' => $created_data,
             'paymentPurpose' => PaymentPurpose::EXTENDED_HOURS,
         ]));
     }
 
-    public function canPay(Booking $booking, BookingExtension $bookingExtension) {
-        $isOverlapping = $this->roomStatusHistoryService->isOverlappingRoomWithExtension($bookingExtension->booking, $bookingExtension->extended_hours);
+    public function canPay(Booking $booking, Booking $bookingExtension) {
+        $isOverlapping = $this->roomStatusHistoryService->isOverlappingRoomWithExtension($bookingExtension->booking, $bookingExtension->check_out);
         if($isOverlapping){
             return response()->json([
                 'message' => 'Khoảng thời gian bạn yêu cầu gia hạn hiện không còn khả dụng do phòng đã được đặt bởi khách khác. Vui lòng chọn thời gian khác.'

@@ -45,7 +45,6 @@ class BookingController extends Controller
         $data['customer_id'] = $customer_id;
 
         $booking = $this->bookingService->handleBooking($data);
-        $booking_id = $booking->id;
         return response()->json([
             'data' => $booking,
             'message' => 'Tạo mới đơn đặt phòng phòng thành công',
@@ -72,14 +71,14 @@ class BookingController extends Controller
         $booking_id = $booking->id;
         // Nếu đơn đã xử lý trước đó -> xóa dịch vụ cũ
         $data = $request->validated();
-        if ($booking->status !== BookingStatus::PENDING_BOOKING_SERVICE) {
+        if ($booking->status !== BookingStatus::PENDING_CONFIRMATION) {
             $this->bookingExtraService->deleteByBookingId($booking_id);        
         }
 
         $services = $data['services'];
         $this->bookingExtraService->saveMultipleBookingServices($services, $booking_id);
         
-        $this->bookingService->updateStatus($booking, BookingStatus::PENDING_CONFIRMATION);
+        $this->bookingService->updateStatus($booking, BookingStatus::PENDING_PAYMENT);
         return response()->json([
             'data' => $booking_id,
             'message' => 'Xác nhận dịch vụ thành công',
@@ -89,12 +88,11 @@ class BookingController extends Controller
     
     public function getBookingConfirmationPage(Booking $booking)
     {
-        if ($booking->status !== BookingStatus::PENDING_CONFIRMATION) {
+        if ($booking->status !== BookingStatus::PENDING_PAYMENT) {
             return response()->json([
                 'message' => 'Yêu cầu không hợp lệ. Đơn đặt phòng không ở trạng thái thích hợp'
             ], 400);
         }
-        $this->bookingService->updateStatus($booking, BookingStatus::PENDING_PAYMENT);
         return response()->json([
             'booking' => $booking,
             'total_amount' => $booking->total_amount,

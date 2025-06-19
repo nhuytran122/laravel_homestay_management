@@ -21,8 +21,7 @@ class BookingPolicy
 
     public function view(User $user, Booking $booking): bool
     {
-        return in_array($user->role->role_name, [RoleSystem::MANAGER, RoleSystem::STAFF])
-            || $this->isOwner($user, $booking);
+        return $this->isOwner($user, $booking);
     }
 
     public function payRoom(User $user, Booking $booking): bool {

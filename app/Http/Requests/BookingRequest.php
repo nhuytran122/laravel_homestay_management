@@ -2,13 +2,16 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\RoleSystem;
 use App\Services\RoomService;
 use App\Services\RoomStatusHistoryService;
+use App\Traits\InteractsWithDatetimeInput;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
 
 class BookingRequest extends FormRequest
 {
+    use InteractsWithDatetimeInput;
     public function authorize(): bool
     {
         return true;
@@ -16,27 +19,44 @@ class BookingRequest extends FormRequest
 
     public function rules(): array
     {
-        //TODO: xử lý vs admin, chọn KH
         $rules = [
             'room_id'     => 'required|exists:rooms,id',
-            'check_in'    => 'required|date_format:Y-m-d H:i:s|after:now',
-            'check_out'   => 'required|date_format:Y-m-d H:i:s|after:check_in',
+            'check_in'    => 'required|date|after:now',
+            'check_out'   => 'required|date|after:check_in',
             'guest_count' => 'required|numeric|min:1',
         ];
-        // if ($this->user()->hasRole([RoleSystem::MANAGER, RoleSystem::STAFF])) {
-        //     $rules['customer_id'] = 'required|exists:customers,id';
-        // }
+        if($this->user()->hasAnyRole([RoleSystem::MANAGER->value, RoleSystem::STAFF->value]))
+            $rules['customer_id'] = 'required|exists:customers,id';
+
         return $rules;
     }
 
+    protected function prepareForValidation()
+    {
+        if ($this->filled('check_in')) {
+            $this->convertDatetimeInputs(['check_in']);
+        }
+
+        if ($this->filled('check_out')) {
+            $this->convertDatetimeInputs(['check_out']);
+        }
+    }
+
+    
     public function withValidator($validator){
         $validator->after(function ($v){
+            $datetimeParseErrors = $this->datetimeParseErrors;
+            if(!empty($datetimeParseErrors)){
+                foreach ($this->datetimeParseErrors ?? [] as $field => $message) {
+                    $v->errors()->add($field, $message);
+                }
+                return;
+            }
             $input_room_id = $this->input('room_id');
             $input_guests = $this->input('guest_count');
             $input_checkin = $this->input('check_in');
             $input_checkout = $this->input('check_out');
 
-            // Nếu thiếu bất kỳ input nào thì bỏ qua custom validate
             if (!$input_room_id || !$input_guests || !$input_checkin || !$input_checkout) {
                 return;
             }
@@ -48,9 +68,6 @@ class BookingRequest extends FormRequest
                 return;
             }
 
-            $input_checkin = $this->input('check_in');
-            $input_checkout = $this->input('check_out');
-
             $isOverlapping = app(RoomStatusHistoryService::class)->existsOverlappingStatuses($input_room_id, $input_checkin, $input_checkout);
 
             if($isOverlapping){
@@ -58,22 +75,6 @@ class BookingRequest extends FormRequest
                 return;
             }
         }); 
-    }
-
-    protected function prepareForValidation()
-    {
-        if ($this->filled('check_in') && $this->filled('check_out')) {
-            try {
-                $checkIn = Carbon::createFromFormat('H:i d/m/Y', $this->check_in);
-                $checkOut = Carbon::createFromFormat('H:i d/m/Y', $this->check_out);
-
-                $this->merge([
-                    'check_in' => $checkIn->format('Y-m-d H:i:s'),
-                    'check_out' => $checkOut->format('Y-m-d H:i:s'),
-                ]);
-            } catch (\Exception $e) {
-            }
-        }
     }
 
 }
